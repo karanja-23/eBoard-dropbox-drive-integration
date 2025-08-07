@@ -1,80 +1,77 @@
-<div class="settings-container p-4">
-  <div class="flex justify-content-between align-items-center mb-4">
-    <h2>Settings</h2>
-    <button 
-      pButton 
-      type="button" 
-      label="Back to Documents" 
-      icon="pi pi-arrow-left"
+<div class="settings-container">
+  
+  <div class="drives-container">
+    
+    <button      
+     
       (click)="navigateToDocuments()"
-      class="p-button-outlined">
+      class="back">
+      <i class="pi pi-arrow-left"></i>
+      
     </button>
   </div>
-
-  <!-- Cloud Storage Sync Settings -->
-  <p-card header="Cloud Storage Sync" class="mb-4">
+  <div class="cloud-storage-settings">
+    <h3 class="heading">Manage Cloud Storage</h3>
     <div class="grid">
-      <!-- Dropbox Section -->
-      <div class="col-12 md:col-6">
+      
+      <div class="dropbox-main">
         <div class="dropbox-section">
-          <div class="flex align-items-center mb-3">
-            <i class="pi pi-cloud text-blue-500 text-2xl mr-2"></i>
-            <h4 class="m-0">Dropbox</h4>
-            <span 
-              class="ml-2 px-2 py-1 border-round text-xs"
+          <div class="connected-container">
+            <i class="pi pi-cloud text"></i>
+            <h4 >Dropbox</h4>
+            <div 
+              class="connected-label"
               [ngClass]="{
                 'bg-green-100 text-green-800': dropboxAuthenticated,
                 'bg-red-100 text-red-800': !dropboxAuthenticated
               }">
+              <i class="pi" 
+                [ngClass]="{
+                  'pi-check-circle': dropboxAuthenticated,
+                  'pi-times-circle': !dropboxAuthenticated
+                }"></i>
               {{ dropboxAuthenticated ? 'Connected' : 'Disconnected' }}
+            </div>
+            <span class="description">
+              Sync your Dropbox files with our system to easily access and manage your cloud documents directly from your eBoard workspace.
             </span>
           </div>
 
           <!-- Not Authenticated -->
-          <div *ngIf="!dropboxAuthenticated" class="mb-3">
-            <p class="text-sm text-600 mb-3">
-              Connect your Dropbox account to sync documents automatically.
+          <div *ngIf="!dropboxAuthenticated" class="not-authenticated">
+            <p >
+              Connect your Dropbox account to sync documents automatically:
             </p>
             <button 
-              pButton 
-              type="button" 
-              label="Connect Dropbox" 
-              icon="pi pi-link"
+              style="border-radius: 4px; border-color: green; color: green; border: 1px solid; max-width: 200px; "
               (click)="authenticateDropbox()"
-              class="p-button-outlined w-full">
+              class="btn">
+              <i class="pi pi-link"
+              style="font-weight: 600;"
+              ></i>
+              <span 
+              style="font-weight: 600;"
+              >Connect Dropbox</span>
             </button>
           </div>
 
           <!-- Authenticated -->
           <div *ngIf="dropboxAuthenticated">
-            <div class="field-checkbox mb-3">
-              <p-checkbox 
-                inputId="dropboxSync" 
-                [(ngModel)]="dropboxSync" 
-                (onChange)="toggleDropboxSync()"
-                [binary]="true">
-              </p-checkbox>
-              <label for="dropboxSync" class="ml-2">
-                Enable automatic sync
-              </label>
-            </div>
-
-            <div class="flex gap-2">
+                        <div class="btns-container">
               <button 
-                pButton 
-                type="button" 
-                label="Refresh" 
-                icon="pi pi-refresh"
+                style="background: linear-gradient(271.89deg, rgb(77, 163, 77), rgb(52, 202, 52));"
                 (click)="getDropboxDocuments()"
-                class="p-button-sm p-button-outlined flex-1">
+                class="btn">
+                
+                <i class="pi pi-sync"></i>
+                <span class="ml-2">Refresh</span>
               </button>
               <button 
-                pButton 
-                type="button" 
-                label="Disconnect" 
-                icon="pi pi-times"
+                style="background: linear-gradient(271.89deg, rgb(143, 8, 8), rgb(247, 102, 102));;"
                 (click)="signOutDropbox()"
-                class="p-button-sm p-button-danger">
+                class="btn">
+                <i class="pi pi-times"></i>
+                <span >Disconnect</span>
               </button>
             </div>
           </div>
@@ -82,124 +79,38 @@
       </div>
 
       <!-- Google Drive Section -->
-      <div class="col-12 md:col-6">
+      <div class="drive-main">
         <div class="drive-section">
-          <div class="flex align-items-center mb-3">
-            <i class="pi pi-google text-blue-600 text-2xl mr-2"></i>
-            <h4 class="m-0">Google Drive</h4>
-            <span class="ml-2 px-2 py-1 border-round text-xs bg-yellow-100 text-yellow-800">
-              Coming Soon
-            </span>
+          <div class="connected-container">
+            <i class="pi pi-google"></i>
+            <h4 >Google Drive</h4>
+            <div 
+              class="connected-label"
+              style="background-color: var(--sibasiGrey); color: var(--sibasiDanger);">
+              <i class="pi pi-clock"></i>
+              Comming soon
+            </div>
           </div>
-
+          <span class="description">
+              Sync your Dropbox files with our system to easily access and manage your cloud documents directly from your eBoard workspace.
+            </span>
+            <p >
+              Google Drive integration is currently under development.
+            </p>
           <p class="text-sm text-600 mb-3">
-            Google Drive integration is currently under development.
+            
           </p>
 
           <div class="field-checkbox mb-3">
-            <p-checkbox 
-              inputId="driveSync" 
-              [(ngModel)]="driveSync" 
-              (onChange)="toggleDriveSync()"
-              [binary]="true"
-              [disabled]="true">
-            </p-checkbox>
-            <label for="driveSync" class="ml-2 text-400">
+            
+            <label for="driveSync" >
               Enable automatic sync (Coming Soon)
             </label>
           </div>
         </div>
       </div>
     </div>
-  </p-card>
-
-  <!-- Dropbox Documents -->
-  <p-card 
-    header="Dropbox Documents" 
-    *ngIf="dropboxAuthenticated && dropboxDocuments.length > 0"
-    class="mb-4">
-    
-    <p-table 
-      [value]="dropboxDocuments" 
-      [paginator]="true" 
-      [rows]="10"
-      [responsive]="true"
-      styleClass="p-datatable-sm">
-      
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Name</th>
-          <th>Size</th>
-          <th>Modified</th>
-          <th>Actions</th>
-        </tr>
-      </ng-template>
-      
-      <ng-template pTemplate="body" let-doc>
-        <tr>
-          <td>
-            <div class="flex align-items-center">
-              <i class="pi pi-file mr-2 text-600"></i>
-              {{ doc.name }}
-            </div>
-          </td>
-          <td>{{ (doc.size / 1024) | number:'1.0-1' }} KB</td>
-          <td>{{ doc.client_modified | date:'short' }}</td>
-          <td>
-            <div class="flex gap-1">
-              <button 
-                pButton 
-                type="button" 
-                icon="pi pi-download" 
-                (click)="downloadFromDropbox(doc)"
-                class="p-button-sm p-button-outlined"
-                pTooltip="Download file">
-              </button>
-              <button 
-                pButton 
-                type="button" 
-                icon="pi pi-sync" 
-                (click)="syncFromDropbox(doc)"
-                class="p-button-sm p-button-outlined"
-                pTooltip="Sync to documents">
-              </button>
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-      
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="4" class="text-center p-4">
-            <i class="pi pi-inbox text-4xl text-400 mb-3"></i>
-            <p class="text-600">No documents found in your Dropbox</p>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </p-card>
-
-  <!-- Empty State for Dropbox -->
-  <p-card 
-    *ngIf="dropboxAuthenticated && dropboxDocuments.length === 0"
-    class="mb-4">
-    
-    <div class="text-center p-4">
-      <i class="pi pi-cloud-upload text-4xl text-400 mb-3"></i>
-      <h4>No Dropbox Documents</h4>
-      <p class="text-600 mb-3">
-        Your Dropbox appears to be empty or documents haven't loaded yet.
-      </p>
-      <button 
-        pButton 
-        type="button" 
-        label="Refresh" 
-        icon="pi pi-refresh"
-        (click)="getDropboxDocuments()"
-        class="p-button-outlined">
-      </button>
-    </div>
-  </p-card>
+  </div>
 
   <!-- Toast messages -->
   <p-toast></p-toast>
