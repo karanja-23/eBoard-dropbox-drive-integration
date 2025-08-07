@@ -1,3 +1,4 @@
+import { createRequire } from 'module';const require = createRequire(import.meta.url);
 import {
   EventBus,
   FilterMatchMode,
@@ -13,10 +14,10 @@ import {
   setAttributes,
   toKebabCase,
   toTokenKey
-} from "./chunk-NVJBYT4K.js";
+} from "./chunk-4NNWIMDB.js";
 import {
   DOCUMENT
-} from "./chunk-QZ2E34AJ.js";
+} from "./chunk-POUHVWWY.js";
 import {
   Injectable,
   InjectionToken,
@@ -30,13 +31,17 @@ import {
   untracked,
   ɵɵdefineInjectable,
   ɵɵgetInheritedFactory
-} from "./chunk-5QXQOMPN.js";
+} from "./chunk-SWIVHK54.js";
 import {
-  Subject
-} from "./chunk-P6U2JBMQ.js";
+  require_cjs
+} from "./chunk-AQYIT73X.js";
 import {
-  __spreadValues
-} from "./chunk-WDMUDEB6.js";
+  __spreadValues,
+  __toESM
+} from "./chunk-YHCV7DAQ.js";
+
+// node_modules/primeng/fesm2022/primeng-config.mjs
+var import_rxjs = __toESM(require_cjs(), 1);
 
 // node_modules/@primeuix/styled/index.mjs
 var __defProp = Object.defineProperty;
@@ -126,6 +131,18 @@ function getRule(selector, properties) {
   }
   return "";
 }
+var $dt = (tokenPath) => {
+  var _a;
+  const theme2 = config_default.getTheme();
+  const variable = dtwt(theme2, tokenPath, void 0, "variable");
+  const name = (_a = variable == null ? void 0 : variable.match(/--[\w-]+/g)) == null ? void 0 : _a[0];
+  const value = dtwt(theme2, tokenPath, void 0, "value");
+  return {
+    name,
+    variable,
+    value
+  };
+};
 var dt = (...args) => {
   return dtwt(config_default.getTheme(), ...args);
 };
@@ -1405,7 +1422,7 @@ var PrimeNG = class _PrimeNG extends ThemeProvider {
     menu: 1e3,
     tooltip: 1100
   };
-  translationSource = new Subject();
+  translationSource = new import_rxjs.Subject();
   translationObserver = this.translationSource.asObservable();
   getTranslation(key) {
     return this.translation[key];
@@ -1474,6 +1491,7 @@ function providePrimeNG(...features) {
 
 export {
   service_default,
+  $dt,
   config_default,
   base,
   BaseStyle,
@@ -1482,4 +1500,4 @@ export {
   PRIME_NG_CONFIG,
   providePrimeNG
 };
-//# sourceMappingURL=chunk-TB6ND6UJ.js.map
+//# sourceMappingURL=chunk-OOWR3CM7.js.map

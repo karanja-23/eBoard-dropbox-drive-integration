@@ -11,7 +11,7 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { HttpClient } from '@angular/common/http';
 import { DropboxService } from '../../Services/dropbox-service.service';
-
+import { PopoverModule } from 'primeng/popover';
 
 interface Document {
   id: number;
@@ -22,6 +22,7 @@ interface Document {
   date_created: string;
   size: number;
   user_id: number;
+  tags?: string[]; // Optional tags for local or dropbox
 }
 
 @Component({
@@ -34,7 +35,8 @@ interface Document {
     ButtonModule, 
     FileUploadModule, 
     FormsModule,
-    ToastModule
+    ToastModule,
+    PopoverModule
   ],
   providers: [
     MessageService], 
@@ -78,8 +80,34 @@ export class DocumentsComponent implements OnInit {
   async updateCombinedDocuments(): Promise<void> {
   const dropboxDocs = this.dropboxDocuments || [];
   const localDocs = this.documents || [];
-  this.dropBoxSynced = [...dropboxDocs, ...localDocs];
-  console.log('Combined documents:', this.dropBoxSynced);
+
+  // Create a map for quick lookup by name and size (or another unique property)
+  const docMap = new Map<string, any>();
+
+  // Add local docs first
+  localDocs.forEach(doc => {
+    const key = `${doc.name}_${doc.size}`;
+    doc.tags = ['local'];
+    docMap.set(key, doc);
+  });
+
+  // Add dropbox docs, merge tags if already present
+  dropboxDocs.forEach(doc => {
+    const key = `${doc.name}_${doc.size}`;
+    if (docMap.has(key)) {
+      // Merge tags
+      const existingDoc = docMap.get(key);
+      if (!existingDoc.tags.includes('dropbox')) {
+        existingDoc.tags.push('dropbox');
+      }
+    } else {
+      doc.tags = ['dropbox'];
+      docMap.set(key, doc);
+    }
+  });
+
+  // Set the combined array
+  this.dropBoxSynced = Array.from(docMap.values());
 }
 
   onDocumentClick(documentId: number) {
@@ -154,6 +182,18 @@ toggleDriveSync() {
   this.driveSync = !this.driveSync;
   // Add actual sync logic here
 }
-
+async setTags(docs:any[]){
+  docs.forEach((doc:any) => {
+    if('client_modified' in doc) {
+      doc.tags = ['dropbox'];
+    }
+    else if('date_created' in doc) {
+      doc.tags = ['local'];
+    }
+    else {
+      doc.tags = [];
+    }
+  });
+}
 
 }
