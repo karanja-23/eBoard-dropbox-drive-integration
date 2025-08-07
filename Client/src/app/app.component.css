@@ -1,0 +1,236 @@
+.container {
+    background-color: var(--sibasiGrey);
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+  }
+  
+  .menu{
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    height: 100%;
+    float: left;
+    border-radius: 0px 20px 20px 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: width 0.3s ease;
+    z-index: 1000;
+    background-color: var(--sibasiGrey);
+  }
+  
+  .main{
+    position: fixed;   
+    top: 0px;
+    height: 100%;
+    width: 100%;
+    float: right; 
+    transition: margin-left 0.3s ease;  
+    display: flex; 
+    flex-direction: column;
+    
+  }
+  
+  .logo{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 10px 20px 30px;
+    box-sizing: border-box;
+  }
+  
+  .logo img{
+    width: 60%;
+  }
+  
+  .menu-container {
+    position: relative;
+    padding: 10px;
+    overflow: hidden; 
+  }
+  .menu-container{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    overflow: hidden;
+  }
+  
+  
+  .header{
+    height: 60px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    box-sizing: border-box;
+    transition: margin-left 0.3s ease;
+    color: var(--text-color);
+  }
+  
+  .profile i{
+    color: var(--text-color);
+  }
+  
+  .header span{
+    font-weight: 600;
+    color: var(--text-color);
+    letter-spacing: 1px;
+  }
+  
+  .header strong{
+    font-weight: 900;
+  }
+  
+  .profile{
+    display: flex;
+    gap: 30px;
+    align-items: center;
+  }
+  
+  .profile img{
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background-color: var(--sibasiGrey);
+  }
+  
+  .company{
+    display: flex;
+    gap: 10px; 
+    background: linear-gradient(271.89deg, #465268, #7382a1);
+    padding: 7px 55px;
+    border-radius: 14px 28px 14px 28px;
+    color: var(--sibasiWhite);
+    cursor: pointer;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+  
+  .company i{
+    color: var(--sibasiWhite);
+  }
+  
+  .company span{
+    color: var(--sibasiWhite);
+    font-weight: 100;
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+  
+  .company:hover{
+    transform: translateX(5px);
+  }
+  
+  .content{
+    background-color: var(--sibasiWhite);
+    width: 98%;
+    margin-top: 20px;
+    padding-bottom: 20px;
+    border-radius: 10px;
+    height: 100%;
+    padding: 20px;
+    float: left;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+  
+  .toggle{
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .toggle i{
+    color: var(--sibasiBlue);
+    transition: all 0.3s ease;
+  }
+  
+  .menu-container{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    overflow: hidden;
+  }
+  .menu_list{  
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column; 
+    gap: 5px;
+    align-items: left;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .menu_list span{
+    font-weight: 400;
+    color: var(--text-color);
+    letter-spacing: 1px;  
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+  }
+  .menu_list .head span{
+    font-weight: 700;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    padding-left: 20px;
+    transition: all 0.3s ease;
+    height: 20px;
+    opacity: 0.7;
+  }
+  .menu_list i{
+    margin-right: 8px;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+  }
+  .menu_items{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: left;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .nav_item{
+    display: flex;
+    color: var(--text-color);
+    padding: 7px 15px; 
+    border-radius: 14px 28px 14px 28px;
+    align-items: center;
+    transition: all 0.3s ease;
+    opacity: 0.85;
+  }
+  .nav_item:hover{
+    transform: translateX(5px);
+    background-color: var(--sibasiWhite);  
+  }
+  .nav_item.active{
+    background-color: var(--sibasiWhite);
+  }
+  .nav_item span{
+    color: var(--text-color);
+    font-weight: 100;
+    font-size: 14px;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+  }
+  .nav_item i{
+    color: var(--text-color);
+    transition: all 0.3s ease;
+  }
+  
+  
+  

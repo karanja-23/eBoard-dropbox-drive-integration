@@ -1,0 +1,101 @@
+.settings-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dropbox-section,
+.drive-section {
+  min-height: 200px;
+}
+
+.p-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.p-card .p-card-header {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Status badges */
+.bg-green-100 {
+  background-color: #dcfce7;
+}
+
+.text-green-800 {
+  color: #166534;
+}
+
+.bg-red-100 {
+  background-color: #fee2e2;
+}
+
+.text-red-800 {
+  color: #991b1b;
+}
+
+.bg-yellow-100 {
+  background-color: #fef3c7;
+}
+
+.text-yellow-800 {
+  color: #92400e;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 1rem;
+  }
+  
+  .flex.gap-2 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .flex.gap-2 .p-button {
+    width: 100%;
+  }
+}
+
+/* Loading states */
+.loading-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Card hover effects */
+.p-card:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Button groups */
+.p-button-group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* Icon styling */
+.pi {
+  font-size: 1rem;
+}
+
+.text-2xl .pi {
+  font-size: 1.5rem;
+}
+
+.text-4xl .pi {
+  font-size: 2.5rem;
+}

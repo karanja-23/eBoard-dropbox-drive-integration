@@ -1,0 +1,97 @@
+<div class="container">
+    <div class="head">
+        <div class="upload" (click)="showAddDocumentDialog = true">
+            <div class="upload-btn">
+                <i class="pi pi-plus"></i>
+                <span>Upload</span> 
+            </div>
+            <div class="upload-btn" style="background-color: var(--sibasiWhite); border: 1px solid #0f8bfd;">
+                <i class=" pi pi-filter-slash" style="color: #0f8bfd"></i>
+                <span style="color: #0f8bfd">Clear</span>
+            </div>
+        </div>
+        <div class="filter">
+            <div class="upload-btn" style="background-color: var(--sibasiWhite); border: 1px solid #0f8bfd;" (click)="showAddDocumentDialog = true">
+                <i class=" pi pi-star" style="color: #0f8bfd"></i>
+                <span style="color: #0f8bfd">Favourites</span>
+            </div>
+            <div class="search">
+                <i class="pi pi-search"></i>
+                <input type="text" placeholder="Search">
+                
+            </div>
+            <div class="sort-view">               
+                    <div class="list"  [class.active]="currentView === 'list'" (click)="setView('list')">
+                      <i class="pi pi-list"></i>
+                    </div>
+                    <div class="grid"  [class.active]="currentView ==='grid'" (click)="setView('grid')">
+                      <i class="pi pi-th-large"></i>
+                    </div>
+            </div>
+        </div>
+    </div>
+   <div class="documents_sync"> 
+  <div class="sync">
+    <div class="sync-btn" [ngClass]="{'sync-active': dropboxSync}" (click)="toggleDropboxSync()">
+      <i class="{{dropboxSync ? 'pi pi-check-circle' : 'pi pi-times-circle'}}" [ngClass]="{'active': dropboxSync}"></i>
+      <span  [ngClass]="{'active': dropboxSync}">Dropbox Sync</span>
+    </div>
+    <div class="sync-btn" [ngClass]="{'sync-active': driveSync}" (click)="toggleDriveSync()">
+      <i class="{{driveSync ? 'pi pi-check-circle' : 'pi pi-times-circle'}}" [ngClass]="{'active': driveSync}"></i>
+      <span  [ngClass]="{'active': driveSync}">Google Drive Sync</span>
+    </div>
+  </div>
+</div>
+    <div class="table">
+        <div class="card">
+            <p-table [value]="dropboxSync ? dropBoxSynced : documents" *ngIf="currentView === 'list'" [tableStyle]="{ 'min-width': '50rem' } " styleClass="white-table">
+                <ng-template #header>
+                    <tr>
+                        <th>Name</th>
+                        <th>size</th>
+                        <th>Type</th>
+                        <th> </th>
+                    </tr>
+                </ng-template>
+                <ng-template #body let-document>
+                    <tr (click)="onDocumentClick(document.id)">
+                        <td><i class="pi pi-file-pdf"></i>  {{ document.name }}</td>
+                        <td>{{ (document.size / (1024 * 1024) ) | number:'1.2-2' }} MB</td>
+                        <td>{{ document.path_lower? document.path_lower.split(".")[1] : document.type.split("/")[1]}}</td>
+                        <td><i class="pi pi-ellipsis-v"></i></td>
+                    </tr>
+                </ng-template>
+            </p-table>
+
+        </div>
+        <div class="grid-view" *ngIf="currentView === 'grid'">
+            <div class="card"  *ngFor="let document of (dropboxSync ? dropBoxSynced : documents)" (click)="onDocumentClick(document.id)">
+                <div class="card-header">
+                    <i class="pi pi-file-pdf"></i>  {{ document.name }}
+                </div>
+                <div class="card-body">
+                    <p>{{ (document.size / (1024 * 1024) ) | number:'1.2-2' }} MB</p>
+                    <p>{{ document.path_lower? document.path_lower.split(".")[1] : document.type.split("/")[1]}}</p>
+                </div>
+                <div class="card-footer">
+                    <i class="pi pi-ellipsis-v" ></i>
+                </div>
+            </div>
+            
+
+        </div>
+    </div>
+     
+</div>
+
+<p-dialog header="Newdocument" [modal]="true" [(visible)]="showAddDocumentDialog" [style]="{ width: '25rem' }">
+    <span class="p-text-secondary block mb-8">Upload new document</span>
+    <div class="card">
+    <p-toast />
+    <p-fileupload name="demo[]" url="https://www.primefaces.org/cdn/api/upload.php" (onUpload)="onFileUpload($event)"  [multiple]="true" accept="image/*, application/pdf" maxFileSize="1000000" mode="advanced">
+        <ng-template #empty>
+            <div>Drag and drop files to here to upload.</div>
+        </ng-template>
+    </p-fileupload>
+</div>
+</p-dialog>

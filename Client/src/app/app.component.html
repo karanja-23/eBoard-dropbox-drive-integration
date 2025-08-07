@@ -1,0 +1,79 @@
+<div class="container">
+  <div
+    class="menu"
+    [style.width]="menuIsOpen ? '220px' : '80px'"
+    (mouseenter)="mouseOver()"
+    (mouseleave)="mouseOut()"
+  >
+    <div class="logo">
+      <img
+        [src]="menuIsOpen ? 'assets/logo.png' : 'assets/emblem.svg'"
+      />
+      <div *ngIf="menuIsOpen" (click)="toggleMenu()" class="toggle">
+        <i [className]="toggleIcon" style="font-size: 10px"></i>
+      </div>
+    </div>
+      <div class="menu-container"
+      [style.width]="menuIsOpen ? '220px' : '80px'"
+      >
+        <div class="menu_list">
+          <div class="head" >
+            <span [style.display]="menuIsOpen ? 'block' : 'none'">Home</span>
+          </div>
+          <div class="menu_items">
+            <div class="nav_item" (click)="closeMenu()" [style.justify-content]="menuIsOpen ? 'flex-start' : 'center'" routerLink="" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+              <i class="pi pi-home"></i>
+              <span [style.display]="menuIsOpen ? 'block' : 'none'">Dashboard</span>
+            </div>
+            
+                        
+          </div>
+
+        </div>
+        <div class="menu_list">
+          <div class="head" >
+            <span [style.display]="menuIsOpen ? 'block' : 'none'">Briefcase</span>
+          </div>
+          <div class="nav_item" (click)="closeMenu()" [style.justify-content]="menuIsOpen ? 'flex-start' : 'center'">
+            <i class="pi pi-list"></i>
+            <span [style.display]="menuIsOpen ? 'block' : 'none'">Folders</span>
+          </div>      
+          <div class="nav_item" (click)="closeMenu()" [style.justify-content]="menuIsOpen ? 'flex-start' : 'center'" routerLink="/documents" routerLinkActive="active">
+            <i class="pi pi-briefcase"></i>
+            <span [style.display]="menuIsOpen ? 'block' : 'none'">Documents</span>
+
+          </div>
+        </div>
+        <div class="menu_list">
+          <div class="head" >
+            <span [style.display]="menuIsOpen ? 'block' : 'none'">Manage</span>
+          </div>
+          <div class="nav_item" (click)="closeMenu()" [style.justify-content]="menuIsOpen ? 'flex-start' : 'center'" routerLink="/settings" routerLinkActive="active">
+            <i class="pi pi-cog"></i>
+            <span [style.display]="menuIsOpen ? 'block' : 'none'">Settings</span>
+          </div>
+        </div>
+      
+    </div>
+  </div>
+  <div
+    class="main"
+   [style.left]="left"
+    [style.width]="'calc(100vw - ' + left + ')'"
+  >
+    <div class="header">
+      <span></span>
+      <div class="profile">
+        <i class="pi pi-cog"></i>
+        <img src="assets/avatar.png" />
+        <div class="company">
+          <i class="pi pi-building"></i>
+          <span>Sibasi ltd</span>
+        </div>
+      </div>
+    </div>
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>
