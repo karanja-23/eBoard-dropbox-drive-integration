@@ -109,6 +109,16 @@
     margin-top: 20px;
     opacity: 0.9;
 }
+.table .pi-cloud{
+    color: blue;
+    font-size: 0.8rem;
+    
+}
+.table .pi-desktop{
+    color: green;
+    font-size: 0.7rem;
+   
+}
 .pi-file-pdf{
     color: #ef4444;
     background: rgba(239, 68, 68, 0.1);
