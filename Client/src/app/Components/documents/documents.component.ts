@@ -195,5 +195,111 @@ async setTags(docs:any[]){
     }
   });
 }
+private sanitizeFileName(fileName: string): string {
+  // Remove or replace characters that Dropbox doesn't allow
+  let cleaned = fileName
+    .replace(/[<>:"|?*]/g, '_') // Replace invalid characters with underscore
+    .replace(/\s+/g, '_') // Replace spaces with underscores
+    .replace(/_{2,}/g, '_') // Replace multiple underscores with single
+    .trim();
+
+  // Ensure file has an extension
+  if (!cleaned.includes('.')) {
+    cleaned += '.pdf'; // Default to PDF if no extension
+  }
+
+  // Limit length (Dropbox has a 255 character limit)
+  if (cleaned.length > 255) {
+    const ext = cleaned.substring(cleaned.lastIndexOf('.'));
+    cleaned = cleaned.substring(0, 255 - ext.length) + ext;
+  }
+
+  return cleaned;
+}
+
+async syncToDropbox(document: Document): Promise<void> {
+  try {
+    if (!this.dropboxSync) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning', 
+        detail: 'Dropbox sync is not enabled'
+      });
+      return;
+    }
+
+    if (!document?.document) {
+      throw new Error('Document content is missing');
+    }
+
+    const cleanFileName = this.sanitizeFileName(document.name);
+    const dropboxPath = `/${cleanFileName}`;
+
+    let fileBlob: Blob;
+    
+    if (document.document.includes('base64,')) {
+      // Data URL format
+      const base64Data = document.document.split('base64,')[1];
+      fileBlob = this.base64ToBlob(base64Data, document.type);
+    } else if (document.document.startsWith('data:')) {
+      // Other data URL format
+      const response = await fetch(document.document);
+      fileBlob = await response.blob();
+    } else {
+      // Raw base64
+      fileBlob = this.base64ToBlob(document.document, document.type);
+    }
+
+    if (!fileBlob || fileBlob.size === 0) {
+      throw new Error('Failed to create valid file from document content');
+    }
+
+    await this.dropboxService.uploadFile(fileBlob, dropboxPath);
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: `Document "${cleanFileName}" synced to Dropbox successfully`
+    });
+
+    // Refresh data
+    await this.getDropboxDocuments();
+    await this.updateCombinedDocuments();
+
+  } catch (error: any) {
+    console.error('Dropbox sync failed:', error.message || error);
+    
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Sync Failed',
+      detail: error.message || 'Failed to sync document to Dropbox'
+    });
+  }
+}
+
+private base64ToBlob(base64: string, contentType: string): Blob {
+  try {
+    const cleanBase64 = base64.replace(/\s/g, '');
+    
+    if (!cleanBase64) {
+      throw new Error('Empty base64 content');
+    }
+    
+    const byteCharacters = atob(cleanBase64);
+    const byteNumbers = new Array(byteCharacters.length);
+    
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: contentType || 'application/octet-stream' });
+    
+  } catch (error: any) {
+    console.error('Base64 conversion failed:', error.message);
+    throw new Error('Invalid document format');
+  }
+}
+
 
 }

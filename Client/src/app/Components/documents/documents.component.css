@@ -300,35 +300,7 @@
     margin-top: 20px;
 }
 /* Responsive Design */
-@media (max-width: 768px) {
-    .grid-view {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 16px;
-    }
-    
-    .grid-view .card {
-        padding: 16px;
-    }
-    
-    .card-header {
-        font-size: 0.9rem;
-    }
-}
 
-@media (max-width: 480px) {
-    .grid-view {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-    
-    .grid-view .card {
-        padding: 14px;
-    }
-    
-    .card-header {
-        gap: 8px;
-    }
-}
 
 /* Loading State */
 .grid-view .card.loading {
@@ -399,4 +371,103 @@
 
 .sync-btn:hover {
   background-color: #f8f9fa;
+}
+
+::ng-deep .popover.p-popover::before,
+::ng-deep .popover.p-popover::after {
+  display: none !important;
+  border: none !important;
+  
+}
+
+::ng-deep .popover.p-popover .p-popover-content {
+  width: 12rem !important;
+  min-width: unset !important;
+  max-width: 90vw !important;
+  background-color: #f8f9fa !important;
+  color: #222 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  padding:  0 !important;
+ border: none  !important;
+}
+
+::ng-deep .popover.p-popover .p-popover-content ul {
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+  border: none  !important;
+}
+
+::ng-deep .popover.p-popover .p-popover-content li {
+  display: block;          
+  width: 100%;            
+  box-sizing: border-box;   
+  padding: 0.5rem 0.75rem;  
+  cursor: pointer;
+  transition: background 0.2s;
+  border: none  !important;
+}
+
+::ng-deep .popover.p-popover .p-popover-content li:hover {
+  background: var(--sibasiGrey) !important;
+  color: var(--text-color) !important;
+  font-weight: 600 !important;
+}
+
+::ng-deep .popover.p-popover,
+::ng-deep .popover.p-popover *,
+::ng-deep .popover.p-popover .p-popover-content,
+::ng-deep .popover.p-popover .p-popover-content ul,
+::ng-deep .popover.p-popover .p-popover-content li {
+  border-color: inherit !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+::ng-deep .popover.p-popover .p-popover-content {
+    border: 1px solid #d0d0d0 !important;
+    
+}
+
+
+
+
+
+
+
+
+
+
+@media (max-width: 768px) {
+    .grid-view {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 16px;
+    }
+    
+    .grid-view .card {
+        padding: 16px;
+    }
+    
+    .card-header {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .grid-view {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .grid-view .card {
+        padding: 14px;
+    }
+    
+    .card-header {
+        gap: 8px;
+    }
 }
