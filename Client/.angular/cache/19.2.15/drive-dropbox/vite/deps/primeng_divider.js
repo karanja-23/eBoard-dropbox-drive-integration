@@ -1,16 +1,16 @@
 import {
   BaseComponent
-} from "./chunk-MEIOIHAJ.js";
+} from "./chunk-BDEUMMMG.js";
 import {
   BaseStyle
-} from "./chunk-FS2IZVF2.js";
+} from "./chunk-N5JJWXNZ.js";
 import {
   SharedModule
-} from "./chunk-SVKEHVM4.js";
+} from "./chunk-WKMCBCMZ.js";
 import {
   CommonModule
-} from "./chunk-GBANFASH.js";
-import "./chunk-QZ2E34AJ.js";
+} from "./chunk-ILKRPROH.js";
+import "./chunk-I2LGPQFU.js";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -36,9 +36,9 @@ import {
   ɵɵprojection,
   ɵɵprojectionDef,
   ɵɵstyleProp
-} from "./chunk-5QXQOMPN.js";
+} from "./chunk-LBCYZSVY.js";
 import "./chunk-P6U2JBMQ.js";
-import "./chunk-WDMUDEB6.js";
+import "./chunk-3OV72XIM.js";
 
 // node_modules/primeng/fesm2022/primeng-divider.mjs
 var _c0 = ["*"];
