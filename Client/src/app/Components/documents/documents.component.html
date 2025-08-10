@@ -90,12 +90,15 @@
           </tr>
         </ng-template>
         <ng-template #body let-document>
-          <tr >
+          <tr>
             <!--(click)="onDocumentClick(document.id)"-->
             <td><i class="pi pi-file-pdf"></i> {{ document.name }}</td>
             <td>
               <ng-container *ngIf="document.tags?.length; else noTags">
-                <span *ngFor="let tag of document.tags let i=index" class="tag">
+                <span
+                  *ngFor="let tag of document.tags; let i = index"
+                  class="tag"
+                >
                   <i
                     *ngIf="tag === 'local'"
                     class="pi pi-desktop"
@@ -108,7 +111,7 @@
                     style="margin-right: 0.25rem"
                     title="Dropbox"
                   ></i>
-                  <span *ngIf="i < document.tags.length - 1">,</span>
+                  <span *ngIf="i < document.tags.length - 1">, </span>
                 </span>
               </ng-container>
               <ng-template #noTags>
@@ -123,14 +126,41 @@
                   : document.type.split("/")[1]
               }}
             </td>
-            <td >
-                <i class="pi pi-ellipsis-v"
-                (click)="op.toggle($event)"
+            <td>
+              <i class="pi pi-ellipsis-v" (click)="op.toggle($event)">
+                <p-popover
+                  #op
+                  styleClass="popover"
+                  [style]="{ width: '12rem' }"
                 >
-                <p-popover #op>
-                    hey
+                  <div class="popover-content">
+                    <ul>
+                        <li>
+                            <i class="pi pi-eye"></i> view
+                        </li>
+                      <li
+                        *ngIf="
+                          (
+                            !(document.tags?.includes('dropbox')) &&
+                            document.tags?.includes('local')
+                          )
+                        "
+                        (click)="syncToDropbox(document)"
+                      >
+                        <i class="pi pi-cloud"></i> sync to Dropbox
+                      </li>
+                      <li *ngIf="(
+                        !(document.tags?.includes('local')) &&
+                        document.tags?.includes('dropbox')
+                      )"
+                        (click)="downloadToLocal(document)"
+                      >
+                        <i class="pi pi-desktop" style="font-size: 0.8rem;"></i> Save from dropbox
+                        </li>
+                    </ul>
+                  </div>
                 </p-popover>
-                </i>
+              </i>
             </td>
           </tr>
         </ng-template>
