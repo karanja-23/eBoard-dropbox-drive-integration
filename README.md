@@ -1,4 +1,4 @@
-# e-Board: Seamless Dropbox & Google Drive File Synchronization
+# e-Board: Dropbox & Google Drive File Synchronization
 
 Integrate Dropbox and Google Drive with your e-Board system to enable effortless file synchronization and management.
 
