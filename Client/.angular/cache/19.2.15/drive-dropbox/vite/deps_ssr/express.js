@@ -1,8 +1,11 @@
 import { createRequire } from 'module';const require = createRequire(import.meta.url);
 import {
+  require_safer
+} from "./chunk-3TQMOA7O.js";
+import {
   __commonJS,
   __require
-} from "./chunk-YHCV7DAQ.js";
+} from "./chunk-GBTWTWDP.js";
 
 // node_modules/depd/index.js
 var require_depd = __commonJS({
@@ -1382,74 +1385,6 @@ var require_destroy = __commonJS({
         this.close();
       }
     }
-  }
-});
-
-// node_modules/safer-buffer/safer.js
-var require_safer = __commonJS({
-  "node_modules/safer-buffer/safer.js"(exports, module) {
-    "use strict";
-    var buffer = __require("buffer");
-    var Buffer2 = buffer.Buffer;
-    var safer = {};
-    var key;
-    for (key in buffer) {
-      if (!buffer.hasOwnProperty(key)) continue;
-      if (key === "SlowBuffer" || key === "Buffer") continue;
-      safer[key] = buffer[key];
-    }
-    var Safer = safer.Buffer = {};
-    for (key in Buffer2) {
-      if (!Buffer2.hasOwnProperty(key)) continue;
-      if (key === "allocUnsafe" || key === "allocUnsafeSlow") continue;
-      Safer[key] = Buffer2[key];
-    }
-    safer.Buffer.prototype = Buffer2.prototype;
-    if (!Safer.from || Safer.from === Uint8Array.from) {
-      Safer.from = function(value, encodingOrOffset, length) {
-        if (typeof value === "number") {
-          throw new TypeError('The "value" argument must not be of type number. Received type ' + typeof value);
-        }
-        if (value && typeof value.length === "undefined") {
-          throw new TypeError("The first argument must be one of type string, Buffer, ArrayBuffer, Array, or Array-like Object. Received type " + typeof value);
-        }
-        return Buffer2(value, encodingOrOffset, length);
-      };
-    }
-    if (!Safer.alloc) {
-      Safer.alloc = function(size, fill, encoding) {
-        if (typeof size !== "number") {
-          throw new TypeError('The "size" argument must be of type number. Received type ' + typeof size);
-        }
-        if (size < 0 || size >= 2 * (1 << 30)) {
-          throw new RangeError('The value "' + size + '" is invalid for option "size"');
-        }
-        var buf = Buffer2(size);
-        if (!fill || fill.length === 0) {
-          buf.fill(0);
-        } else if (typeof encoding === "string") {
-          buf.fill(fill, encoding);
-        } else {
-          buf.fill(fill);
-        }
-        return buf;
-      };
-    }
-    if (!safer.kStringMaxLength) {
-      try {
-        safer.kStringMaxLength = process.binding("buffer").kStringMaxLength;
-      } catch (e) {
-      }
-    }
-    if (!safer.constants) {
-      safer.constants = {
-        MAX_LENGTH: safer.kMaxLength
-      };
-      if (safer.kStringMaxLength) {
-        safer.constants.MAX_STRING_LENGTH = safer.kStringMaxLength;
-      }
-    }
-    module.exports = safer;
   }
 });
 
