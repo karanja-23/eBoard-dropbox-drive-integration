@@ -111,7 +111,7 @@
                     style="margin-right: 0.25rem"
                     title="Dropbox"
                   ></i>
-                  <span *ngIf="i < document.tags.length - 1">,</span>
+                  <span *ngIf="i < document.tags.length - 1">, </span>
                 </span>
               </ng-container>
               <ng-template #noTags>
@@ -149,6 +149,14 @@
                       >
                         <i class="pi pi-cloud"></i> sync to Dropbox
                       </li>
+                      <li *ngIf="(
+                        !(document.tags?.includes('local')) &&
+                        document.tags?.includes('dropbox')
+                      )"
+                        (click)="downloadToLocal(document)"
+                      >
+                        <i class="pi pi-desktop" style="font-size: 0.8rem;"></i> Save from dropbox
+                        </li>
                     </ul>
                   </div>
                 </p-popover>

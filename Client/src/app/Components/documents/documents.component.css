@@ -403,7 +403,9 @@
 }
 
 ::ng-deep .popover.p-popover .p-popover-content li {
-  display: block;          
+  display: flex;        
+    align-items: center;
+    gap: 0.5rem;
   width: 100%;            
   box-sizing: border-box;   
   padding: 0.5rem 0.75rem;  

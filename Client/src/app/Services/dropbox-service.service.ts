@@ -439,32 +439,110 @@ export class DropboxService {
   }
 }
   // Download file from Dropbox
-  async downloadFile(path: string): Promise<Blob> {
-    await this.ensureInitialized();
-    
-    if (!this.isAuthenticated()) {
-      throw new Error('Not authenticated');
+async downloadFile(path: string): Promise<Blob> {
+  await this.ensureInitialized();
+  
+  if (!this.isAuthenticated()) {
+    throw new Error('Not authenticated');
+  }
+
+  try {
+    // Get the access token (adjust based on your SDK version)
+    let accessToken: string;
+    if (this.dbx.auth && typeof this.dbx.auth.getAccessToken === 'function') {
+      accessToken = await this.dbx.auth.getAccessToken();
+    } else if (this.dbx.getAccessToken && typeof this.dbx.getAccessToken === 'function') {
+      accessToken = this.dbx.getAccessToken();
+    } else {
+      throw new Error('Cannot get access token');
     }
 
-    try {
-      console.log(`📥 Downloading file: ${path}`);
-      
-      const response = await this.dbx.filesDownload({ path: path });
-      
-      console.log('✅ File downloaded successfully');
-      return response.result.fileBinary;
-      
-    } catch (error) {
-      console.error('❌ Download failed:', error);
-      
-      if (this.isAuthenticationError(error)) {
-        this.signOut();
-        throw new Error('Not authenticated');
+    const response = await fetch('https://content.dropboxapi.com/2/files/download', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Dropbox-API-Arg': JSON.stringify({ path: path }),
       }
-      
-      throw error;
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Download failed: ${response.status} ${response.statusText}`);
     }
+
+    const blob = await response.blob();
+
+    if (blob.size === 0) {
+      throw new Error('Downloaded file is empty');
+    }
+
+    return blob;
+
+  } catch (error) {
+    if (this.isAuthenticationError(error)) {
+      this.signOut();
+      throw new Error('Not authenticated');
+    }
+    
+    throw error;
   }
+}
+
+// Alternative method using direct HTTP API (more reliable for large files)
+async downloadFileDirectAPI(path: string): Promise<Blob> {
+  await this.ensureInitialized();
+  
+  if (!this.isAuthenticated()) {
+    throw new Error('Not authenticated');
+  }
+
+  try {
+    console.log(`📥 Downloading file via Direct API: ${path}`);
+    
+    // Get the access token (adjust based on your SDK version)
+    let accessToken: string;
+    if (this.dbx.auth && typeof this.dbx.auth.getAccessToken === 'function') {
+      accessToken = await this.dbx.auth.getAccessToken();
+    } else if (this.dbx.getAccessToken && typeof this.dbx.getAccessToken === 'function') {
+      accessToken = this.dbx.getAccessToken();
+    } else {
+      throw new Error('Cannot get access token');
+    }
+
+    const response = await fetch('https://content.dropboxapi.com/2/files/download', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Dropbox-API-Arg': JSON.stringify({ path: path }),
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Direct API download failed:', response.status, errorText);
+      throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    console.log('✅ Direct API download successful, size:', blob.size);
+
+    if (blob.size === 0) {
+      throw new Error('Downloaded file is empty');
+    }
+
+    return blob;
+
+  } catch (error) {
+    console.error('❌ Direct API download failed:', error);
+    
+    if (this.isAuthenticationError(error)) {
+      this.signOut();
+      throw new Error('Not authenticated');
+    }
+    
+    throw error;
+  }
+}
 
   private isAuthenticationError(error: any): boolean {
   return error?.status === 401 || 

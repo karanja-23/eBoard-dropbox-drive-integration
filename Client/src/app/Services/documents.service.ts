@@ -25,7 +25,7 @@ export class DocumentsService {
     if (!response.ok) {
       throw new Error('Failed to add document');
     }
-    console.log(response.json());
+    
     return await response.json();
     
   }
