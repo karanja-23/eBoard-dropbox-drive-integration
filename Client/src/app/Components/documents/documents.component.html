@@ -194,10 +194,11 @@
 </div>
 
 <p-dialog
-  header="Newdocument"
+  header="New Document"
   [modal]="true"
   [(visible)]="showAddDocumentDialog"
   [style]="{ width: '25rem' }"
+  styleClass="modal"
 >
   <span class="p-text-secondary block mb-8">Upload new document</span>
   <div class="card">
@@ -210,6 +211,7 @@
       accept="image/*, application/pdf"
       maxFileSize="1000000"
       mode="advanced"
+      styleClass="fileDownload"
     >
       <ng-template #empty>
         <div>Drag and drop files to here to upload.</div>
