@@ -436,6 +436,7 @@
 }
 
 ::ng-deep .modal {
+    z-index: 10 !important;
     background-color: var(--sibasiWhite) !important;
     color: #465268 !important;
     min-width: 720px !important;
@@ -450,6 +451,7 @@
  
 }
 ::ng-deep .fileDownload{
+    z-index: 10 !important;
     margin-top: 7px;
     width: 100%;
     height: 100%;

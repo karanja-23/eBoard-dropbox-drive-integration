@@ -12,12 +12,13 @@ import { filter } from 'rxjs';
 })
 export class AppComponent {
   
-  menuIsOpen: boolean = false;
-  left:string ="80px";
-  menuIsLocked: boolean = false;
-  toggleIcon: string = 'pi pi-circle-off';
-  private justUnpinned: boolean = false;
+  menuIsOpen: boolean = true;
+  left:string ="200px";
+  menuIsLocked: boolean = true;
+  toggleIcon: string = 'pi pi-circle-on';
+  private justUnpinned: boolean = true;
   currentRoute: string = '/';
+  isHovering: boolean = false;
   constructor(private router: Router) {
     console.log('AppComponent created, router injected');
     this.router.events.pipe(
@@ -60,6 +61,7 @@ export class AppComponent {
     this.toggleIcon = 'pi pi-circle-off';
   }
   mouseOver() {
+    this.isHovering = true;
     if (!this.menuIsLocked && !this.justUnpinned) {
       this.menuIsOpen = true;
     
@@ -67,6 +69,7 @@ export class AppComponent {
   }
 
   mouseOut() {
+    this.isHovering = false;
     if (!this.menuIsLocked) {
       this.menuIsOpen = false;
             
