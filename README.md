@@ -2,6 +2,11 @@
 
 Integrate Dropbox and Google Drive with your e-Board system to enable effortless file synchronization and management.
 
+## Functionalities
+- **Cloud Integration:** Browse and manage files from database and Dropbox/Google Drive together.
+- **Download from Cloud:** Retrieve and store cloud files in your local database.
+- **Upload to Cloud:** Add files from your local database to Dropbox or Google Drive.
+
 ## Setup
 
 1. **Clone the repository:**

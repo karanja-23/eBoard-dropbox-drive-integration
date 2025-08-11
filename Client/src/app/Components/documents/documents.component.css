@@ -435,9 +435,44 @@
     
 }
 
-
-
-
+::ng-deep .modal {
+    background-color: var(--sibasiWhite) !important;
+    color: #465268 !important;
+    min-width: 720px !important;
+    min-height: 360px !important;
+    padding: 0px 20px !important;
+    box-sizing: border-box !important;
+}
+::ng-deep .p-dialog-close-button:hover {
+  border-radius: 14px 28px 14px 28px !important;
+  background-color: #0f8bfd !important;
+  color: var(--sibasiWhite) !important;
+ 
+}
+::ng-deep .fileDownload{
+    margin-top: 7px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: var(--sibasiWhite) !important;
+    color: var(--text-color);
+}
+::ng-deep .fileDownload .p-button {
+  border-radius: 14px 28px 14px 28px !important;
+}
+::ng-deep .p-fileupload-choose-button {
+  background-color: #0f8bfd !important;
+  color: #fff !important;
+  
+}
+::ng-deep .p-fileupload-choose-button:hover {
+  opacity: 0.9;
+  
+}
 
 
 
