@@ -183,6 +183,7 @@ export class DropboxService {
     });
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Dropbox token exchange error:', errorText);
       throw new Error(`Token exchange failed (${response.status}): ${errorText}`);
     }
     return await response.json();

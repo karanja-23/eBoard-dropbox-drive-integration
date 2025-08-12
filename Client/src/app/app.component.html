@@ -2,7 +2,7 @@
   <div
     class="menu"
     [style.width]="menuIsOpen ? '220px' : '80px'"
-    (mouseenter)="mouseOver()"
+    [style.z-index]="isHovering ? '0' : '1'"
     (mouseleave)="mouseOut()"
   >
     <div class="logo">
@@ -44,7 +44,7 @@
 
           </div>
         </div>
-        <div class="menu_list">
+        <div class="menu_list" >
           <div class="head" >
             <span [style.display]="menuIsOpen ? 'block' : 'none'">Manage</span>
           </div>
