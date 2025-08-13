@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { DocumentsComponent } from './Components/documents/documents.component';
 import { DashboardComponent } from './Components/dashboard/dashboard.component';
 import { SettingsComponent } from './Components/settings/settings.component';
+import { FoldersComponent } from './Components/folders/folders.component';  
 export const routes: Routes = [
     {
         path: '',
@@ -14,6 +15,10 @@ export const routes: Routes = [
     {
         path: 'settings',
         component: SettingsComponent
+    },
+    {
+        path: 'folders',
+        component: FoldersComponent
     }
 
 ];

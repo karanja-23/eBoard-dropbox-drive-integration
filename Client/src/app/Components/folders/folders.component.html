@@ -1,0 +1,32 @@
+<div class="container">
+  <div class="head">
+    <div class="upload" [style.z-index]="34" >
+      <div class="upload-btn" (click)="showAddFolderDialog()">
+        <i class="pi pi-plus"></i>
+        <span>New Folder</span>
+      </div>
+      <div
+        class="upload-btn"
+        style="background-color: var(--sibasiWhite); border: 1px solid #0f8bfd"
+      >
+        <i class="pi pi-filter-slash" style="color: #0f8bfd"></i>
+        <span style="color: #0f8bfd">Clear</span>
+      </div>
+    </div>
+    <div class="filter">
+      <div
+        class="upload-btn"
+        style="background-color: var(--sibasiWhite); border: 1px solid #0f8bfd"
+       
+      >
+        <i class="pi pi-star" style="color: #0f8bfd"></i>
+        <span style="color: #0f8bfd">Favourites</span>
+      </div>
+      <div class="search">
+        <i class="pi pi-search"></i>
+        <input type="text" placeholder="Search" />
+      </div>
+     
+      </div>
+    </div>
+  </div>

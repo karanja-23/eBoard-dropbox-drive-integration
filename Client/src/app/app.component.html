@@ -34,7 +34,7 @@
           <div class="head" >
             <span [style.display]="menuIsOpen ? 'block' : 'none'">Briefcase</span>
           </div>
-          <div class="nav_item" (click)="closeMenu()" [style.justify-content]="menuIsOpen ? 'flex-start' : 'center'">
+          <div class="nav_item" (click)="closeMenu()" [style.justify-content]="menuIsOpen ? 'flex-start' : 'center'" routerLink="/folders" routerLinkActive="active">
             <i class="pi pi-list"></i>
             <span [style.display]="menuIsOpen ? 'block' : 'none'">Folders</span>
           </div>      
