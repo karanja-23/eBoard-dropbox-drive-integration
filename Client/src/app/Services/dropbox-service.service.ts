@@ -418,4 +418,37 @@ export class DropboxService {
     this.lastError = null;
     await this.initializeDropbox();
   }
+  async listFolders(path: string = ''): Promise<DropboxFile[]> {
+    await this.ensureInitialized();
+    if (!this.isAuthenticated()) {
+      return [];
+    }
+    try {
+      const normalizedPath = path === '' ? '' : (path.startsWith('/') ? path : `/${path}`);
+      const response = await this.dbx.filesListFolder({
+        path: normalizedPath,
+        recursive: false,
+        include_media_info: false,
+        include_deleted: false,
+        include_has_explicit_shared_members: false,
+        include_mounted_folders: true
+      });
+      const folders = response.result.entries
+        .filter((entry: any) => entry['.tag'] === 'folder')
+        .map((folder: any) => ({
+          id: folder.id,
+          name: folder.name,
+          path_lower: folder.path_lower,
+          type: folder['.tag'],
+           server_modified: folder.server_modified || null
+        }));
+      return folders;
+    } catch (error) {
+      if (this.isAuthenticationError(error)) {
+        this.signOut();
+        return [];
+      }
+      throw error;
+    }
+  }
 }

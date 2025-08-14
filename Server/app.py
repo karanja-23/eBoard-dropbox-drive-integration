@@ -2,7 +2,7 @@ from flask_migrate import Migrate
 from flask import Flask, request, jsonify, url_for, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
-from models import db,User,Documents
+from models import db,User,Documents,Folders
 import os
 
 load_dotenv()
@@ -91,5 +91,35 @@ def update_drive_sync(user_id):
     user.drive_sync = not user.drive_sync
     db.session.commit()
     return jsonify({"message": "Drive sync updated successfully"}), 200
+
+@app.route('/folders', methods=['GET', 'POST'])
+def get_folders():
+    if request.method == 'GET':
+        folders = Folders.query.all()
+        return jsonify([folder.to_dict() for folder in folders]), 200
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        user_id = int(request.form.get('user_id'))
+        if not name or not user_id:
+            return jsonify({"message": "Missing required fields"}), 400
+        folder = Folders(name=name, user_id=user_id, description=description)
+        db.session.add(folder)
+        db.session.commit()
+        return jsonify({"message": "Folder created successfully"}), 201
+@app.route('/folder/<int:folder_id>', methods=['GET', 'PUT', 'DELETE'])
+def get_folder(folder_id):
+    folder = Folders.query.get_or_404(folder_id)
+    if request.method == 'GET':
+        return jsonify(folder.to_dict()), 200
+    elif request.method == 'PUT':
+        data = request.get_json()
+        folder.name = data['name']
+        db.session.commit()
+        return jsonify(folder.to_dict()), 200
+    elif request.method == 'DELETE':
+        db.session.delete(folder)
+        db.session.commit()
+        return jsonify({"message": "Folder deleted successfully"}), 204
 if __name__ == '__main__':
     app.run(debug=True,port=5050)

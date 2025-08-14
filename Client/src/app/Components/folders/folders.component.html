@@ -29,4 +29,87 @@
      
       </div>
     </div>
+     <div class="table" >
+   
+    <div class="card" style="padding-left: 25px">
+      <p-table
+        [value]="folders"
+        [tableStyle]="{ 'min-width': '50rem' }"
+        styleClass="white-table"
+      >
+        <ng-template #header>
+          <tr>
+            <th> </th>
+            <th> </th>
+            <th> </th>
+            <th> </th>
+            <th> </th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-folder>
+          <tr>
+            
+            <td style="display: flex; align-items: center; gap: 8px">
+  <div class="folder-icon-container">
+    <img src="assets/folder.png" alt="" />
+    <i 
+      [class]="folder.path_lower ? 'pi pi-cloud icon-badge' : 'pi pi-desktop icon-badge'"
+    ></i>
   </div>
+  <span style="color: #2f6699; text-decoration: underline; text-underline-offset: 2px;">
+    <span style="font-weight: 900; font-size: 1.1rem;">. /</span>
+    <span style="font-size: 0.9rem; font-weight: 700;">{{folder.name | lowercase}}</span>
+  </span>
+</td>
+            <td> </td>
+            <td> </td>
+            <td> </td>
+            <td class="actions"></td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+   
+  </div>
+    
+  </div>
+  
+ 
+
+<p-dialog
+  header="Add New Folder"
+  [(visible)]="addFolderDialogVisible"
+  [modal]="true"
+  [(visible)]="addFolderDialogVisible"
+  [style]="{ width: '25rem' }"
+  styleClass="modal"
+>
+  
+  <div class="form">
+    <div class="field">
+    <label for="name">Name</label>
+    <input
+      type="text"
+      id="name"
+      pInputText
+      [(ngModel)]="newFolderName"
+      placeholder="Enter folder name"
+    />
+  </div>
+  <div class="field">
+    <label for="description">Description</label>
+    <textarea
+      id="description"
+      pInputTextarea
+      [(ngModel)]="newFolderDescription"
+      rows="3"
+      placeholder="Enter folder description"
+    ></textarea>
+  </div>
+  </div>
+  <button [className]="newFolderName && newFolderDescription ? 'btn' : 'disabled'" (click)="addFolder()" [disabled]="!newFolderName && !newFolderDescription">
+    <i class="pi pi-save"></i>
+    <span>Save</span>
+  </button>
+  </p-dialog>
+  <p-toast></p-toast>

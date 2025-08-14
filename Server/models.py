@@ -33,6 +33,7 @@ class Folders(db.Model, SerializerMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     date_created = db.Column(db.DateTime, unique=False, nullable=False, default=datetime.utcnow)
     documents = db.relationship('Documents', backref='folder', lazy=True)
+    description = db.Column(db.String(255), nullable=True)
     def to_dict(self):
         return {
             'id': self.id,
@@ -40,6 +41,7 @@ class Folders(db.Model, SerializerMixin):
             'user_id': self.user_id,
             'date_created': self.date_created.isoformat(),
             'documents': [doc.to_dict() for doc in self.documents],
+            'description': self.description
         }
     
     def __repr__(self):

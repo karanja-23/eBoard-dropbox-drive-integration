@@ -79,3 +79,237 @@
     transition: all 0.3s ease;
     font-size: 0.8rem;
 }
+::ng-deep .modal {
+    z-index: 10 !important;
+    background-color: var(--sibasiWhite) !important;
+    color: #465268 !important;
+    min-width: 720px !important;
+    min-height: 360px !important;
+    padding: 0px 20px !important;
+    box-sizing: border-box !important;
+}
+::ng-deep .p-dialog-close-button:hover {
+ 
+  background-color: var(--sibasiGrey) !important;
+  color: var( --text-color) !important;
+}
+.form{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+.field{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.field label{
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+.field input{
+    padding: 8px 10px;
+    border: none;
+    outline: none;
+    border-radius: 5px;
+    background-color: var(--sibasiGrey);
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+.field input:focus{
+    border: 1px solid var(--sibasiBlue);
+    transition: all 0.3s ease;
+}
+.field input::placeholder{
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+.field input:focus::placeholder{
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+.field textarea{
+    padding: 8px 10px;
+    border: none;
+    outline: none;
+    border-radius: 5px;     
+    background-color: var(--sibasiGrey);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    resize: none;
+}
+.field textarea:focus{
+    border: 1px solid var(--sibasiBlue);
+    transition: all 0.3s ease;
+}
+.field textarea::placeholder{
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+.field textarea:focus::placeholder{
+    color: var(--text-color);
+    transition: all 0.3s ease;
+} 
+.btn{
+    display: flex;
+    flex-direction: row;
+    height: fit-content;
+    gap: 6px;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #0f8bfd;
+    padding: 5px 12px;
+    color: var(--sibasiWhite);
+    border-radius: 14px 28px 14px 28px;
+    float: right;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    width: fit-content;
+    font-size: 0.9rem;
+}
+.btn:hover{
+    opacity: 0.87;
+    transition: all 0.3s ease;
+    
+}
+.btn i{
+    color: var(--sibasiWhite);
+    transition: all 0.3s ease;
+    font-size: 0.8rem;
+}
+.btn span{
+    font-weight: 500;
+    color: var(--sibasiWhite);
+    letter-spacing: 0.7px;  
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+}
+.disabled{
+    height: fit-content;
+    gap: 6px;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #0f8bfd;
+    padding: 5px 12px;
+    color: var(--sibasiWhit);
+    border-radius: 14px 28px 14px 28px;
+    float: right;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    width: fit-content;
+    font-size: 0.9rem;
+    opacity: 0.5;
+    pointer-events: none;
+    user-select: none;
+    cursor: not-allowed;
+    
+}
+.disabled:hover{
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+.disabled i{
+    color: var(--sibasiWhite);
+    transition: all 0.3s ease;
+    font-size: 0.8rem;
+}
+.disabled span{
+    font-weight: 500;
+    color: var(--sibasiWhite);
+    letter-spacing: 0.7px;  
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+}
+::ng-deep .white-table {
+    background-color: white !important;
+    color: var(--text-color);
+}
+
+::ng-deep .white-table .p-datatable {
+    background-color: white !important;
+}
+
+::ng-deep .white-table .p-datatable-wrapper {
+    background-color: white !important;
+}
+
+::ng-deep .white-table .p-datatable-table {
+    background-color: white !important;
+}
+
+::ng-deep .white-table .p-datatable-tbody > tr {
+    background-color: white !important;
+    color: var(--text-color);
+    
+}
+
+::ng-deep .white-table .p-datatable-tbody > tr:hover{
+    background-color: var(--sibasiGrey)!important;
+    
+    transition: all 0.3s ease
+}
+::ng-deep .white-table .p-datatable-tbody > tr > td {
+    border-bottom: 0px solid #d0d0d0 !important;
+}
+
+::ng-deep .white-table .p-datatable-thead > tr > th {
+    background-color: white !important;
+    color: var(--text-color);
+    border-bottom: 1px solid #d0d0d0 !important;
+}
+::ng-deep .white-table img{
+    width: 29px;
+    height: 29px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    margin-right: 2px;
+}
+.folder-icon-container {
+  position: relative;
+  display: inline-block;
+}
+
+.folder-icon-container img {
+  width: 35px;
+  height: 35px;
+  display: block;
+}
+
+.icon-badge {
+  position: absolute;
+  bottom: -3px;
+  left: -3px;
+  font-size: 9px;
+  font-weight: 900;
+  background: white;
+  border-radius: 50%;
+  width: 17px;
+  height: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  border: none;
+  padding: 0;
+}
+
+/* Different colors for cloud vs desktop */
+.pi-cloud.icon-badge {
+  background-color: #2196F3;
+  color: white;
+  padding: 5px;
+
+}
+
+.pi-desktop.icon-badge {
+  background-color: green;
+  color: white;
+  padding: 5px;
+
+ 
+}
