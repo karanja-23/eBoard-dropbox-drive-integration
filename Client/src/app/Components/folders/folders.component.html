@@ -56,7 +56,7 @@
       [class]="folder.path_lower ? 'pi pi-cloud icon-badge' : 'pi pi-desktop icon-badge'"
     ></i>
   </div>
-  <span style="color: #2f6699; text-decoration: underline; text-underline-offset: 2px;">
+  <span  style="color: #2f6699; text-decoration: underline; text-underline-offset: 2px; cursor: pointer;" (click)="navigateToFolder(folder); $event.stopPropagation()">
     <span style="font-weight: 900; font-size: 1.1rem;">. /</span>
     <span style="font-size: 0.9rem; font-weight: 700;">{{folder.name | lowercase}}</span>
   </span>

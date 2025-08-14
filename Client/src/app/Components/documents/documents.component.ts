@@ -136,6 +136,7 @@ export class DocumentsComponent implements OnInit {
     formData.append('document', file);
     formData.append('type', file.type);
     formData.append('size', file.size.toString()); 
+    formData.append('folder_id', '1'); // Replace with actual folder ID if needed
     
     this.downloadDocument(formData);
     this.selectedFile = null; 

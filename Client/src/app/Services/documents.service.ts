@@ -45,7 +45,7 @@ export class DocumentsService {
     return await response.json();
   }
   async getFolderById(folderId: string) {
-    const response = await fetch(`${this.url}/folders/${folderId}`);
+    const response = await fetch(`${this.url}/folder/${folderId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch folder');
     }
@@ -61,4 +61,5 @@ export class DocumentsService {
     }
     return await response.json();
   }
+
 }
