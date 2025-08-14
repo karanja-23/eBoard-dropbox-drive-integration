@@ -8,9 +8,12 @@ import { TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
 import { PopoverModule } from 'primeng/popover';
 import { DropboxService } from '../../Services/dropbox-service.service';
+import { Router, RouterModule } from '@angular/router';
+import { Folder } from '../../Interfaces/folder';
+import { Console } from 'console';
 @Component({
   selector: 'app-folders',
-  imports: [DialogModule, FormsModule, ToastModule, TableModule, CommonModule, PopoverModule],
+  imports: [DialogModule, FormsModule, ToastModule, TableModule, CommonModule, RouterModule, PopoverModule],
   templateUrl: './folders.component.html',
   styleUrl: './folders.component.css',
   providers: [MessageService],
@@ -31,7 +34,8 @@ export class FoldersComponent implements OnInit {
   constructor(
     private documentsService: DocumentsService,
     private messageService: MessageService,
-    private dropboxService: DropboxService
+    private dropboxService: DropboxService,
+    private router: Router
   ){ }
 
   showAddFolderDialog() {
@@ -90,6 +94,25 @@ export class FoldersComponent implements OnInit {
     } catch (error) {
       console.error("Error fetching all folders:", error);
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch all folders.' });
+    }
+  }
+  async navigateToFolder(folder: Folder) {
+    
+    let source = await this.getSource(folder);
+    
+    this.router.navigate(['/folders', folder.name], { 
+    state: { id: folder.id,source:source} 
+  
+  });
+  }
+  async getSource(folder: Folder) : Promise<string> {
+    
+    if (folder.path_lower) {
+      return 'dropbox';
+    } else if (folder.date_created) {
+      return 'local';
+    } else {
+      return 'unknown';
     }
   }
  
