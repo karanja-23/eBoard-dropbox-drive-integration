@@ -3,7 +3,7 @@ export const environment = {
   dropbox: {
     clientId: 'frl6s7ghsfjmhb7',
     clientSecret: 'g5aehtzj9emlax0',
-    redirectUri: 'http://localhost:42001/settings',
+    redirectUri: 'http://localhost:4200/settings',
     
   }
 }

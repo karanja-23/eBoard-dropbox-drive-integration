@@ -1,17 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from '../environment';
-
+import { Documents } from '../Interfaces/documents';
 import { Dropbox } from 'dropbox';
 
-export interface DropboxFile {
-  id: string;
-  name: string;
-  path_lower: string;
-  client_modified: string;
-  size: number;
-  content_hash?: string;
-}
+
 
 export interface DropboxServiceState {
   isInitialized: boolean;
@@ -201,7 +194,7 @@ export class DropboxService {
     sessionStorage.removeItem('dropbox_oauth_state');
   }
 
-  async listFiles(path: string = ''): Promise<DropboxFile[]> {
+  async listFiles(path: string = ''): Promise<Documents[]> {
     await this.ensureInitialized();
     if (!this.isAuthenticated()) {
       throw new Error('Not authenticated');
@@ -418,7 +411,7 @@ export class DropboxService {
     this.lastError = null;
     await this.initializeDropbox();
   }
-  async listFolders(path: string = ''): Promise<DropboxFile[]> {
+  async listFolders(path: string = ''): Promise<Documents[]> {
     await this.ensureInitialized();
     if (!this.isAuthenticated()) {
       return [];
@@ -450,5 +443,70 @@ export class DropboxService {
       }
       throw error;
     }
+  }
+  async getFolderContent(path: string): Promise<Documents[]> {
+    await this.ensureInitialized();
+    if (!this.isAuthenticated()) {
+      throw new Error('Not authenticated');
+    }
+    try {
+      const response = await this.dbx.filesListFolder({
+        path: path,
+        recursive: false,
+        include_media_info: false,
+        include_deleted: false,
+        include_has_explicit_shared_members: false,
+        include_mounted_folders: true
+      });
+      const entries = response.result.entries;
+      const files = entries.filter((entry: any) => entry['.tag'] === 'file').map((file: any) => ({
+        id: file.id,
+        name: file.name,
+        path_lower: file.path_lower,
+        client_modified: file.client_modified,
+        size: file.size,
+        content_hash: file.content_hash
+      }));
+      const folders = entries.filter((entry: any) => entry['.tag'] === 'folder').map((folder: any) => ({
+        id: folder.id,
+        name: folder.name,
+        path_lower: folder.path_lower,
+        server_modified: folder.server_modified || null,
+        type: folder['.tag']
+      }));
+      return [...files, ...folders];
+    } catch (error) {
+      if (this.isAuthenticationError(error)) {
+        this.signOut();
+        throw new Error('Not authenticated');
+      }
+      throw error;
+    }
+  }
+  async openDocument(fileId: string){
+    await this.ensureInitialized();
+    if (!this.isAuthenticated()) {
+      throw new Error('Not authenticated');
+    }
+    try {
+      const response = await fetch(`/api/dropbox/download/${fileId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+        }
+      });
+      if (!response.ok) throw new Error('Download failed');
+    
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    
+    // Open in new window/tab
+    window.open(blobUrl, '_blank');
+    
+    // Clean up the blob URL after use
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  } catch (error) {
+    console.error('Error opening document:', error);
+  }
   }
 }

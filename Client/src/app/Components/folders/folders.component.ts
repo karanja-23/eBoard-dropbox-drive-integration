@@ -10,7 +10,7 @@ import { PopoverModule } from 'primeng/popover';
 import { DropboxService } from '../../Services/dropbox-service.service';
 import { Router, RouterModule } from '@angular/router';
 import { Folder } from '../../Interfaces/folder';
-import { Console } from 'console';
+
 @Component({
   selector: 'app-folders',
   imports: [DialogModule, FormsModule, ToastModule, TableModule, CommonModule, RouterModule, PopoverModule],
@@ -99,9 +99,10 @@ export class FoldersComponent implements OnInit {
   async navigateToFolder(folder: Folder) {
     
     let source = await this.getSource(folder);
+    let path = folder.path_lower || '';
     
     this.router.navigate(['/folders', folder.name], { 
-    state: { id: folder.id,source:source} 
+    state: { id: folder.id,source:source, path: path } 
   
   });
   }

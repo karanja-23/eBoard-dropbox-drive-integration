@@ -55,6 +55,8 @@ def get_documents():
         type = request.form.get('type')
         user_id= int(request.form.get('user_id'))
         size = request.form.get('size')
+        if request.form.get('folder_id'):
+            folder_id = int(request.form.get('folder_id'))
         
         if not document:
             return jsonify({"message": "No file provided"}), 400
@@ -63,7 +65,8 @@ def get_documents():
             document=document.read(),
             type=type,
             user_id=user_id,
-            size=size
+            size=size,
+            folder_id=folder_id if 'folder_id' in locals() else None
         )
         if not document.name or not document.document or not document.type:
             return jsonify({"message": "Missing required fields"}), 400    
