@@ -5,6 +5,8 @@
     flex-direction: column;
     color: var(--text-color);
     box-sizing: border-box;
+    padding-top: 30px;
+    padding-left: 0.5;
 }
 .head{
     width: 100%;
