@@ -1,26 +1,26 @@
 import { createRequire } from 'module';const require = createRequire(import.meta.url);
 import {
   withHttpTransferCache
-} from "./chunk-UWXIE7KX.js";
+} from "./chunk-XQ2QPIJT.js";
 import {
   DomRendererFactory2,
   EVENT_MANAGER_PLUGINS,
   EventManager,
   EventManagerPlugin,
   SharedStylesHost
-} from "./chunk-VLE6YTJZ.js";
+} from "./chunk-6E6V72T4.js";
 import {
   CommonModule,
   DomAdapter,
   getDOM,
   setRootDomAdapter
-} from "./chunk-FQQWA3L4.js";
+} from "./chunk-MAOPXJYG.js";
 import {
   DOCUMENT,
   PLATFORM_BROWSER_ID,
   XhrFactory,
   parseCookieValue
-} from "./chunk-5KGVFINV.js";
+} from "./chunk-AZBSIVAO.js";
 import {
   ApplicationModule,
   ApplicationRef,
@@ -1299,4 +1299,4 @@ export {
    * License: MIT
    *)
 */
-//# sourceMappingURL=chunk-AXLEJ32R.js.map
+//# sourceMappingURL=chunk-IO7OW5LF.js.map

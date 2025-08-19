@@ -12,7 +12,7 @@ import { ToastModule } from 'primeng/toast';
 import { HttpClient } from '@angular/common/http';
 import { DropboxService } from '../../Services/dropbox-service.service';
 import { PopoverModule } from 'primeng/popover';
-
+import { GoogleDriveService } from '../../Services/google-drive.service';
 interface Document {
   id: number;
   name: string;
@@ -60,19 +60,24 @@ export class DocumentsComponent implements OnInit {
   dropboxDocuments: any[] = [];
   dropBoxSynced: any[] = [];
 
+  googleDriveDocuments: any[] = [];
+
   constructor(
     private documentsService: DocumentsService,
     private router: Router,
     private messageService: MessageService,
     private http: HttpClient,
-    private dropboxService: DropboxService
+    private dropboxService: DropboxService,
+    private driveService: GoogleDriveService
   ) {
     
   }
   async ngOnInit() {
     await this.getUser(1); // Replace with actual user ID
     await this.getDropboxDocuments();
+    await this.getDriveDocuments();
     await this.updateCombinedDocuments();
+
   }
 
   setView(view: 'list' | 'grid') {
@@ -81,20 +86,42 @@ export class DocumentsComponent implements OnInit {
   async updateCombinedDocuments(): Promise<void> {
   const dropboxDocs = this.dropboxDocuments || [];
   const localDocs = this.documents || [];
+  const driveDocs = this.googleDriveDocuments || [];
 
-  // Create a map for quick lookup by name and size (or another unique property)
+  console.log('Input documents:', {
+    local: localDocs.length,
+    dropbox: dropboxDocs.length,
+    drive: driveDocs.length
+  });
+
+  // Create a map for quick lookup by name and size
   const docMap = new Map<string, any>();
+
+  // Helper function to normalize size (Google Drive returns size as string)
+  const normalizeSize = (size: any): number => {
+    if (typeof size === 'string') {
+      return parseInt(size) || 0;
+    }
+    return size || 0;
+  };
+
+  // Helper function to generate consistent key
+  const generateKey = (doc: any): string => {
+    const name = doc.name || doc.title || doc.filename || 'unknown';
+    const size = normalizeSize(doc.size || doc.bytes);
+    return `${name}_${size}`;
+  };
 
   // Add local docs first
   localDocs.forEach(doc => {
-    const key = `${doc.name}_${doc.size}`;
+    const key = generateKey(doc);
     doc.tags = ['local'];
     docMap.set(key, doc);
   });
 
   // Add dropbox docs, merge tags if already present
   dropboxDocs.forEach(doc => {
-    const key = `${doc.name}_${doc.size}`;
+    const key = generateKey(doc);
     if (docMap.has(key)) {
       // Merge tags
       const existingDoc = docMap.get(key);
@@ -107,8 +134,108 @@ export class DocumentsComponent implements OnInit {
     }
   });
 
+  // Add Google Drive docs, merge tags if already present
+  driveDocs.forEach(doc => {
+    const key = generateKey(doc);
+    console.log(`Processing Drive doc: ${doc.name} (${doc.size} bytes) - key: ${key}`);
+    
+    if (docMap.has(key)) {
+      // Merge tags
+      const existingDoc = docMap.get(key);
+      if (!existingDoc.tags.includes('drive')) {
+        existingDoc.tags.push('drive');
+      }
+      console.log(`Merged with existing doc - tags now: ${existingDoc.tags}`);
+    } else {
+      doc.tags = ['drive'];
+      docMap.set(key, doc);
+      console.log(`Added new Drive doc`);
+    }
+  });
+
   // Set the combined array
   this.dropBoxSynced = Array.from(docMap.values());
+  
+  // Enhanced logging
+  const tagStats = {
+    local: 0,
+    dropbox: 0,
+    drive: 0,
+    localOnly: 0,
+    dropboxOnly: 0,
+    driveOnly: 0,
+    multiple: 0
+  };
+
+  this.dropBoxSynced.forEach(doc => {
+    if (doc.tags.includes('local')) tagStats.local++;
+    if (doc.tags.includes('dropbox')) tagStats.dropbox++;
+    if (doc.tags.includes('drive')) tagStats.drive++;
+    
+    if (doc.tags.length === 1) {
+      if (doc.tags[0] === 'local') tagStats.localOnly++;
+      else if (doc.tags[0] === 'dropbox') tagStats.dropboxOnly++;
+      else if (doc.tags[0] === 'drive') tagStats.driveOnly++;
+    } else {
+      tagStats.multiple++;
+    }
+  });
+
+  console.log('Document combination stats:', {
+    input: {
+      local: localDocs.length,
+      dropbox: dropboxDocs.length,
+      drive: driveDocs.length,
+    },
+    output: {
+      combined: this.dropBoxSynced.length,
+      ...tagStats,
+      duplicates: (localDocs.length + dropboxDocs.length + driveDocs.length) - this.dropBoxSynced.length
+    }
+  });
+
+  // Show sample of drive-tagged documents for verification
+  const driveTaggedDocs = this.dropBoxSynced.filter(doc => doc.tags.includes('drive'));
+  console.log(`Drive-tagged documents (${driveTaggedDocs.length}):`, 
+    driveTaggedDocs.slice(0, 3).map(doc => ({
+      name: doc.name,
+      size: normalizeSize(doc.size),
+      tags: doc.tags,
+      mimeType: doc.mimeType
+    }))
+  );
+}
+
+async getDriveDocuments(): Promise<void> {
+    try {
+      if (!this.driveService.isAuthenticated) {
+        console.error('Not authenticated with Google Drive');
+        return;
+      }
+
+      console.log('Starting to load Google Drive files...');
+
+      const result = await this.driveService.listAllFiles({
+        progressCallback: (current: number) => {
+          console.log(`Progress: ${current} files loaded`);
+        }
+      });
+
+      // Fix: Assign to the correct property
+      this.googleDriveDocuments = result.files; // <-- Changed from this.getUser
+      
+      console.log(`Successfully loaded ${this.googleDriveDocuments.length} files`);
+      console.log('Sample Drive files:', this.googleDriveDocuments.slice(0, 2).map(f => f.name));
+      
+      // Call updateCombinedDocuments after loading Drive files
+      await this.updateCombinedDocuments();
+      
+      console.log('Google Drive documents loaded and combined successfully');
+
+    } catch (error) {
+      console.error('Failed to list all files:', error);
+      console.error('Error details:', error);
+    } 
 }
 
   onDocumentClick(documentId: number) {

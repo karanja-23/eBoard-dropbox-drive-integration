@@ -79,6 +79,7 @@
         *ngIf="currentView === 'list'"
         [tableStyle]="{ 'min-width': '50rem' }"
         styleClass="white-table"
+        
       >
         <ng-template #header>
           <tr>
@@ -111,6 +112,12 @@
                     style="margin-right: 0.25rem"
                     title="Dropbox"
                   ></i>
+                  <i
+                    *ngIf="tag === 'drive'"
+                    class="pi pi-google"
+                    style="margin-right: 0.25rem"
+                    title="Google drive"
+                  ></i>
                   <span *ngIf="i < document.tags.length - 1">, </span>
                 </span>
               </ng-container>
@@ -123,7 +130,7 @@
               {{
                 document.path_lower
                   ? document.path_lower.split(".")[1]
-                  : document.type.split("/")[1]
+                  : document.type.split("/")[1] || 'Unknown'
               }}
             </td>
             <td>

@@ -7,3 +7,5 @@ export const environment = {
     
   }
 }
+const clientId = '159275077726-04l1m9742c2mgbu95on0e2ekaenb8fe0.apps.googleusercontent.com';
+const client_secret = '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'
