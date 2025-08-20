@@ -113,16 +113,23 @@
     opacity: 0.9;
     width: 100%;
     box-sizing: border-box;
-}
-.table .pi-cloud{
-    color: blue;
-    font-size: 0.8rem;
+    padding-bottom: 50px;
+    
     
 }
-.table .pi-desktop{
-    color: green;
-    font-size: 0.7rem;
+
+.table img{
+    width: 16px;
+    height: 16px;    
+    margin-right: 10px;
    
+}
+
+.file-image img{
+    width: 25px; 
+    height: 25px;  
+    margin-right: 10px;
+    flex-shrink: 0;
 }
 .pi-file-pdf{
     color: #ef4444;
@@ -135,6 +142,7 @@
 ::ng-deep .white-table {
     background-color: white !important;
     color: var(--text-color);
+    height: 500px;
 }
 
 ::ng-deep .white-table .p-datatable {
@@ -162,6 +170,7 @@
 }
 ::ng-deep .white-table .p-datatable-tbody > tr > td {
     border-bottom: 1px solid #d0d0d0 !important;
+    height: 40px !important;
 }
 
 ::ng-deep .white-table .p-datatable-thead > tr > th {
@@ -486,6 +495,108 @@
 
 
 
+
+::ng-deep .p-paginator {
+    margin-top: 50px !important;
+    background-color: var(--sibasiWhite) !important;
+    padding: 8px 12px;
+    border-radius: 0 0 10px 10px;
+    color: var(--text-color) !important;
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    justify-content: flex-end !important;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-sizing: border-box !important;
+    
+ }
+ ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page {
+    background-color: var(--sibasiWhite);
+    color: var(--text-color);
+    border: none;
+  }
+ 
+::ng-deep .p-paginator .p-paginator-pages .p-paginator-page.p-highlight,
+::ng-deep .p-paginator .p-paginator-pages .p-paginator-page.p-paginator-page-selected{
+  background: linear-gradient(271.89deg, #465268, #0f8bfd) !important;
+    color: var(--sibasiWhite)   !important;
+    font-weight: bold;
+    border-radius: 14px 28px 14px 28px;
+    
+}
+::ng-deep .p-paginator .p-paginator-pages .p-paginator-page:not(.p-highlight):hover {
+    background-color:var(--sibasiGrey) !important;
+    color: var(--sibasiWhite)   !important;
+    border-radius: 14px 28px 14px 28px;
+    font-weight: bold;
+}
+::ng-deep .p-paginator .p-paginator-prev {
+  background-color: var(--sibasiWhite) !important;
+  color: var(--text-color);
+  border-radius: 14px 28px 14px 28px;
+}
+::ng-deep .p-paginator .p-paginator-prev.p-link {
+  background-color: var(--sibasiWhite) !important;
+}
+::ng-deep .p-paginator .p-paginator-next {
+  color: var(--text-color) !important;
+  border-radius: 14px 28px 14px 28px !important;
+}
+
+::ng-deep .p-paginator .p-paginator-next:hover {
+  color: var(--text-color);
+  background-color: var(--sibasiGrey) !important;
+}
+::ng-deep .p-paginator-rpp-dropdown{
+    background-color: var(--sibasiWhite) !important;
+    color: var(--text-color) !important;
+    border: 2px solid #0f8bfd !important;
+    padding: 0px 15px !important;
+    border-radius: 14px 28px 14px 28px !important;
+    display: none !important;
+}
+::ng-deep .p-paginator-rpp-dropdown svg{
+  fill: #0f8bfd !important;
+  color: #2d3647 !important;
+  height: 13px !important;
+  width: 13px !important; 
+}
+::ng-deep .p-paginator-rpp-dropdown .ng-inserted{
+    background-color: var(--sibasiWhite) !important;
+    color: var(--text-color) !important;
+    border: 1px solid var(--sibasiGrey) !important;
+}
+::ng-deep .p-paginator-rpp-dropdown span{
+    background-color: var(--sibasiWhite) !important;
+    color: var(--text-color) !important;
+}
+::ng-deep .p-select-list-container{
+    background-color: var(--sibasiWhite) !important;
+    color: var(--text-color) !important;
+}
+::ng-star-inserted, ::ng-star-inserted ul, ::ng-star-inserted li{
+    background-color: var(--sibasiWhite) !important;
+    color: var(--text-color) !important;
+}
+::ng-deep .p-paginator .p-paginator-first,
+::ng-deep .p-paginator .p-paginator-last {
+  color: var(--text-color);
+  border-radius: 14px 28px 14px 28px;
+  background-color: var(--sibasiWhite) !important;
+}
+::ng-deep .p-paginator .p-paginator-first:hover,
+::ng-deep .p-paginator .p-paginator-last:hover {
+  background-color: var(--sibasiGrey) !important;
+  color: var(--text-color) !important;
+  font-weight: bold;
+}
+::ng-deep .p-paginator .p-paginator-current{
+  color: var(--text-color) !important;
+  font-weight: 600 !important;
+  opacity: 0.84 !important;
+  letter-spacing: 1px !important;
+}
 @media (max-width: 768px) {
     .grid-view {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));

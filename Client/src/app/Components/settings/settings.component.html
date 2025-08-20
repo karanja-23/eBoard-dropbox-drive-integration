@@ -86,27 +86,60 @@
             <h4 >Google Drive</h4>
             <div 
               class="connected-label"
-              style="background-color: var(--sibasiGrey); color: var(--sibasiDanger);">
-              <i class="pi pi-clock"></i>
-              Coming Soon
+              [ngClass]="{
+                'bg-green-100 text-green-800': driveAuthenticated,
+                'bg-red-100 text-red-800': !driveAuthenticated
+              }">
+              <i class="pi" 
+                [ngClass]="{
+                  'pi-check-circle': driveAuthenticated,
+                  'pi-times-circle': !driveAuthenticated
+                }"></i>
+              {{ driveAuthenticated ? 'Connected' : 'Disconnected' }}
             </div>
           </div>
-          <span class="description">
-              Sync your files on google drive with our system to easily access and manage your cloud documents directly from your eBoard workspace.
+          <div class="description">
+            <span >
+              Sync your Google Drive files with our system to easily access and manage your cloud documents directly from your eBoard workspace.
             </span>
-            <p >
-              Google Drive integration is currently under development.
-            </p>
-          <p class="text-sm text-600 mb-3">
-            
-          </p>
-
-          <div class="field-checkbox mb-3">
-            
-            <label for="driveSync" >
-              Enable automatic sync (Coming Soon)
-            </label>
           </div>
+          <!-- Not Authenticated -->
+          <div *ngIf="!driveAuthenticated" class="not-authenticated">
+            <p >
+              Connect your Google Drive account to sync documents automatically:
+            </p>
+            <button 
+              style="border-radius: 4px; border-color: green; color: green; border: 1px solid; max-width: 200px; "
+              (click)="authenticateDrive()"
+              class="btn">
+              <i class="pi pi-link"
+              style="font-weight: 600;"
+              ></i>
+              <span 
+              style="font-weight: 600;"
+              >Connect Google Drive</span>
+            </button>
+          </div>
+          <!-- Authenticated -->
+          <div *ngIf="driveAuthenticated">
+            <div class="btns-container">
+              <button 
+                style="background: linear-gradient(271.89deg, rgb(77, 163, 77), rgb(52, 202, 52));"
+                (click)="getDriveDocuments()"
+                class="btn">
+                <i class="pi pi-sync"></i>
+                <span class="ml-2">Refresh</span>
+              </button>
+              <button 
+                style="background: linear-gradient(271.89deg, rgb(143, 8, 8), rgb(247, 102, 102));;"
+                (click)="signOutDrive()"
+                class="btn">
+                <i class="pi pi-times"></i>
+                <span >Disconnect</span>
+              </button>
+            </div>
+          </div>
+            
         </div>
       </div>
     </div>

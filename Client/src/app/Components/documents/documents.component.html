@@ -79,6 +79,10 @@
         *ngIf="currentView === 'list'"
         [tableStyle]="{ 'min-width': '50rem' }"
         styleClass="white-table"
+        paginator="true"
+        [rows]="7"
+        [rowsPerPageOptions]="[10, 20, 30]"
+        
       >
         <ng-template #header>
           <tr>
@@ -90,27 +94,41 @@
           </tr>
         </ng-template>
         <ng-template #body let-document>
-          <tr>
+          <tr>  
             <!--(click)="onDocumentClick(document.id)"-->
-            <td><i class="pi pi-file-pdf"></i> {{ document.name }}</td>
+            <td class="file-image" >
+               <img   *ngIf="document.type === 'application/pdf' || document.type === 'PDF' || document.type === 'pdf' || document.path_lower?.endsWith('.pdf')" src="assets/pdf.png" class="pdf-icon" alt="PDF Icon" />
+               <img *ngIf="document.type === 'image/png' || document.type === 'image/jpeg' || document.type === 'image/jpg' || document.path_lower?.endsWith('.png') || document.path_lower?.endsWith('.jpg') || document.path_lower?.endsWith('.jpeg')" src="assets/photo.png" class="image-icon" alt="Image Icon" />
+               <img *ngIf="document.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || document.type === 'Google Doc' || document.path_lower?.endsWith('.docx')" src="assets/doc.png" class="word-icon" alt="Word Icon" />
+              {{ document.name }}</td>
             <td>
               <ng-container *ngIf="document.tags?.length; else noTags">
                 <span
                   *ngFor="let tag of document.tags; let i = index"
                   class="tag"
                 >
-                  <i
+                <img
+                    *ngIf="tag === 'drive'"
+                    src="assets/google-drive.png"
+                    class="google"
+                    style="margin-right: 0.25rem"
+                    title="Google drive"
+                  >
+                  <img
                     *ngIf="tag === 'local'"
-                    class="pi pi-desktop"
+                    src="assets/save.png"
+                    class="desktop"
                     style="margin-right: 0.25rem"
                     title="Local"
-                  ></i>
-                  <i
-                    *ngIf="tag === 'dropbox'"
-                    class="pi pi-cloud"
+                  >
+                  <img
+                   *ngIf="tag === 'dropbox'"
+                    src="assets/dropbox.png"
+                    class="cloud"
                     style="margin-right: 0.25rem"
                     title="Dropbox"
-                  ></i>
+                  >
+                  
                   <span *ngIf="i < document.tags.length - 1">, </span>
                 </span>
               </ng-container>
@@ -119,13 +137,19 @@
               </ng-template>
             </td>
             <td>{{ document.size / (1024 * 1024) | number : "1.2-2" }} MB</td>
-            <td>
-              {{
-                document.path_lower
-                  ? document.path_lower.split(".")[1]
-                  : document.type.split("/")[1]
-              }}
-            </td>
+            
+
+<td>
+  {{
+    document.path_lower 
+      ? document.path_lower.split(".").pop()?.toUpperCase() 
+      : document.type?.includes('/') 
+        ? document.type.split("/")[1]?.toUpperCase()
+        : document.tags?.includes('drive')
+          ? document.type
+          : document.type?.toUpperCase() || 'Unknown'
+  }}
+</td>
             <td>
               <i class="pi pi-ellipsis-v" (click)="op.toggle($event)">
                 <p-popover

@@ -27,6 +27,16 @@ import {
   BaseStyle
 } from "./chunk-N5JJWXNZ.js";
 import {
+  RouterLink,
+  RouterLinkActive,
+  RouterModule
+} from "./chunk-VWSB4VH5.js";
+import {
+  DomSanitizer
+} from "./chunk-RKWVKYQH.js";
+import "./chunk-AZ63YRAI.js";
+import "./chunk-AQVX7F57.js";
+import {
   OverlayService,
   PrimeTemplate,
   SharedModule,
@@ -39,16 +49,6 @@ import {
   relativePosition,
   uuid
 } from "./chunk-WKMCBCMZ.js";
-import {
-  RouterLink,
-  RouterLinkActive,
-  RouterModule
-} from "./chunk-VWSB4VH5.js";
-import {
-  DomSanitizer
-} from "./chunk-RKWVKYQH.js";
-import "./chunk-AZ63YRAI.js";
-import "./chunk-AQVX7F57.js";
 import {
   CommonModule,
   NgClass,

@@ -1,38 +1,39 @@
+import { createRequire } from 'module';const require = createRequire(import.meta.url);
 import {
   Badge,
   BadgeModule,
   Ripple
-} from "./chunk-WOBDGGST.js";
+} from "./chunk-IHZ6DZF4.js";
 import {
   DomHandler
-} from "./chunk-5G7WYC4N.js";
+} from "./chunk-N6625Q5J.js";
 import {
   SpinnerIcon
-} from "./chunk-GTZK3ARO.js";
+} from "./chunk-2JMOEAR3.js";
 import {
   BaseComponent
-} from "./chunk-BDEUMMMG.js";
+} from "./chunk-AT3LYM63.js";
 import {
   BaseStyle
-} from "./chunk-N5JJWXNZ.js";
+} from "./chunk-YSGUEI2A.js";
 import {
   PrimeTemplate,
   SharedModule,
   addClass,
   findSingle,
   isEmpty
-} from "./chunk-WKMCBCMZ.js";
+} from "./chunk-KNPMRTZL.js";
 import {
   CommonModule,
   NgClass,
   NgIf,
   NgStyle,
   NgTemplateOutlet
-} from "./chunk-ILKRPROH.js";
+} from "./chunk-MAOPXJYG.js";
 import {
   DOCUMENT,
   isPlatformBrowser
-} from "./chunk-I2LGPQFU.js";
+} from "./chunk-AZBSIVAO.js";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -86,7 +87,7 @@ import {
   ɵɵtemplate,
   ɵɵtext,
   ɵɵtextInterpolate
-} from "./chunk-LBCYZSVY.js";
+} from "./chunk-2VCDYKZS.js";
 
 // node_modules/primeng/fesm2022/primeng-autofocus.mjs
 var AutoFocus = class _AutoFocus extends BaseComponent {
@@ -2090,4 +2091,4 @@ export {
   Button,
   ButtonModule
 };
-//# sourceMappingURL=chunk-4D32HKR3.js.map
+//# sourceMappingURL=chunk-N5DEOBGY.js.map

@@ -12,7 +12,7 @@ import { ToastModule } from 'primeng/toast';
 import { HttpClient } from '@angular/common/http';
 import { DropboxService } from '../../Services/dropbox-service.service';
 import { PopoverModule } from 'primeng/popover';
-
+import { GoogleDriveService } from '../../Services/google-drive.service';
 interface Document {
   id: number;
   name: string;
@@ -60,41 +60,69 @@ export class DocumentsComponent implements OnInit {
   dropboxDocuments: any[] = [];
   dropBoxSynced: any[] = [];
 
+  googleDriveDocuments: any[] = [];
+
   constructor(
     private documentsService: DocumentsService,
     private router: Router,
     private messageService: MessageService,
     private http: HttpClient,
-    private dropboxService: DropboxService
+    private dropboxService: DropboxService,
+    private driveService: GoogleDriveService
   ) {
     
   }
   async ngOnInit() {
     await this.getUser(1); // Replace with actual user ID
     await this.getDropboxDocuments();
+    await this.getDriveDocuments();
     await this.updateCombinedDocuments();
+
   }
 
   setView(view: 'list' | 'grid') {
     this.currentView = view;
   }
-  async updateCombinedDocuments(): Promise<void> {
+  
+async updateCombinedDocuments(): Promise<void> {
   const dropboxDocs = this.dropboxDocuments || [];
   const localDocs = this.documents || [];
+  const driveDocs = this.googleDriveDocuments || [];
 
-  // Create a map for quick lookup by name and size (or another unique property)
+  console.log('Input documents:', {
+    local: localDocs.length,
+    dropbox: dropboxDocs.length,
+    drive: driveDocs.length
+  });
+
+  // Create a map for quick lookup by name and size
   const docMap = new Map<string, any>();
+
+  // Helper function to normalize size (Google Drive returns size as string)
+  const normalizeSize = (size: any): number => {
+    if (typeof size === 'string') {
+      return parseInt(size) || 0;
+    }
+    return size || 0;
+  };
+
+  // Helper function to generate consistent key
+  const generateKey = (doc: any): string => {
+    const name = doc.name || doc.title || doc.filename || 'unknown';
+    const size = normalizeSize(doc.size || doc.bytes);
+    return `${name}_${size}`;
+  };
 
   // Add local docs first
   localDocs.forEach(doc => {
-    const key = `${doc.name}_${doc.size}`;
+    const key = generateKey(doc);
     doc.tags = ['local'];
     docMap.set(key, doc);
   });
 
   // Add dropbox docs, merge tags if already present
   dropboxDocs.forEach(doc => {
-    const key = `${doc.name}_${doc.size}`;
+    const key = generateKey(doc);
     if (docMap.has(key)) {
       // Merge tags
       const existingDoc = docMap.get(key);
@@ -107,10 +135,145 @@ export class DocumentsComponent implements OnInit {
     }
   });
 
-  // Set the combined array
-  this.dropBoxSynced = Array.from(docMap.values());
+  // Add Google Drive docs, merge tags if already present
+  driveDocs.forEach(doc => {
+    const key = generateKey(doc);
+    console.log(`Processing Drive doc: ${doc.name} (${doc.size} bytes) - key: ${key}`);
+    
+    if (docMap.has(key)) {
+      // Merge tags
+      const existingDoc = docMap.get(key);
+      if (!existingDoc.tags.includes('drive')) {
+        existingDoc.tags.push('drive');
+      }
+      console.log(`Merged with existing doc - tags now: ${existingDoc.tags}`);
+    } else {
+      doc.tags = ['drive'];
+      docMap.set(key, doc);
+      console.log(`Added new Drive doc`);
+    }
+  });
+
+  // Set the combined array and sort by name
+  this.dropBoxSynced = this.sortDocumentsByName(Array.from(docMap.values()));
+  
+  // Enhanced logging
+  const tagStats = {
+    local: 0,
+    dropbox: 0,
+    drive: 0,
+    localOnly: 0,
+    dropboxOnly: 0,
+    driveOnly: 0,
+    multiple: 0
+  };
+
+  this.dropBoxSynced.forEach(doc => {
+    if (doc.tags.includes('local')) tagStats.local++;
+    if (doc.tags.includes('dropbox')) tagStats.dropbox++;
+    if (doc.tags.includes('drive')) tagStats.drive++;
+    
+    if (doc.tags.length === 1) {
+      if (doc.tags[0] === 'local') tagStats.localOnly++;
+      else if (doc.tags[0] === 'dropbox') tagStats.dropboxOnly++;
+      else if (doc.tags[0] === 'drive') tagStats.driveOnly++;
+    } else {
+      tagStats.multiple++;
+    }
+  });
+
+  console.log('Document combination stats:', {
+    input: {
+      local: localDocs.length,
+      dropbox: dropboxDocs.length,
+      drive: driveDocs.length,
+    },
+    output: {
+      combined: this.dropBoxSynced.length,
+      ...tagStats,
+      duplicates: (localDocs.length + dropboxDocs.length + driveDocs.length) - this.dropBoxSynced.length
+    }
+  });
+
+  // Show sample of drive-tagged documents for verification
+  const driveTaggedDocs = this.dropBoxSynced.filter(doc => doc.tags.includes('drive'));
+  console.log(`Drive-tagged documents (${driveTaggedDocs.length}):`, 
+    driveTaggedDocs.slice(0, 3).map(doc => ({
+      name: doc.name,
+      size: normalizeSize(doc.size),
+      tags: doc.tags,
+      mimeType: doc.mimeType
+    }))
+  );
+}
+private sortDocumentsByName(documents: any[]): any[] {
+  return documents.sort((a, b) => {
+    const nameA = (a.name || a.title || '').toLowerCase();
+    const nameB = (b.name || b.title || '').toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+}
+async getDriveDocuments(): Promise<void> {
+  try {
+    if (!this.driveService.isAuthenticated) {
+      console.error('Not authenticated with Google Drive');
+      return;
+    }
+
+    console.log('Starting to load Google Drive files...');
+
+    const result = await this.driveService.listAllFiles({
+      progressCallback: (current: number) => {
+        console.log(`Progress: ${current} files loaded`);
+      }
+    });
+
+    // Process each document to add normalized properties including type
+    this.googleDriveDocuments = result.files.map((doc: any) => {
+      return {
+        ...doc,
+        // Add the type property using your existing method
+        type: this.getDriveFileType(doc),
+        // Add normalized size
+        size: this.normalizeSize(doc.size),
+        // Add source identifier
+        source: 'drive'
+      };
+    });
+    
+    console.log(`Successfully loaded ${this.googleDriveDocuments.length} files`);
+    console.log('Sample Drive files with types:', 
+      this.googleDriveDocuments.slice(0, 5).map(f => ({
+        name: f.name,
+        type: f.type,
+        mimeType: f.mimeType,
+        size: f.size,
+        id: f.id
+      }))
+    );
+    
+    // Call updateCombinedDocuments after loading Drive files
+    await this.updateCombinedDocuments();
+    
+    console.log('Google Drive documents loaded and combined successfully');
+
+  } catch (error) {
+    console.error('Failed to list all files:', error);
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to load Google Drive documents'
+    });
+  } 
 }
 
+// Helper method to normalize size (add this if you don't have it)
+private normalizeSize(size: any): number {
+  if (typeof size === 'string') {
+    return parseInt(size) || 0;
+  }
+  return size || 0;
+}
   onDocumentClick(documentId: number) {
     this.router.navigate(['/documents', documentId]);
   }
@@ -421,6 +584,103 @@ private getFileType(filename: string): string {
   return mimeTypes[extension || ''] || 'application/octet-stream';
 }
 
+private getDriveFileType(document: any): string {
+  // Handle different ways files store type information
+  if (document.mimeType) {
+    // Google Drive uses mimeType - return user-friendly names
+    if (document.mimeType === 'application/vnd.google-apps.document') return 'Google Doc';
+    if (document.mimeType === 'application/vnd.google-apps.spreadsheet') return 'Google Sheet';
+    if (document.mimeType === 'application/vnd.google-apps.presentation') return 'Google Slides';
+    if (document.mimeType === 'application/vnd.google-apps.form') return 'Google Form';
+    if (document.mimeType === 'application/vnd.google-apps.drawing') return 'Google Drawing';
+    if (document.mimeType === 'application/pdf') return 'PDF';
+    if (document.mimeType === 'text/plain') return 'Text';
+    if (document.mimeType.startsWith('image/')) return 'Image';
+    if (document.mimeType.startsWith('video/')) return 'Video';
+    if (document.mimeType.startsWith('audio/')) return 'Audio';
+    
+    // For other MIME types, extract the subtype and make it readable
+    const parts = document.mimeType.split('/');
+    if (parts.length > 1) {
+      const subtype = parts[1];
+      // Convert common subtypes to readable names
+      if (subtype.includes('word')) return 'Word Document';
+      if (subtype.includes('excel') || subtype.includes('spreadsheet')) return 'Excel';
+      if (subtype.includes('powerpoint') || subtype.includes('presentation')) return 'PowerPoint';
+      if (subtype.includes('zip')) return 'ZIP Archive';
+      
+      // Capitalize first letter and remove technical prefixes
+      return subtype.replace(/^(vnd\.|x-|ms-)/, '').replace(/^\w/, (c: string) => c.toUpperCase());
+    }
+    
+    return document.mimeType;
+  }
+  
+  if (document.path_lower) {
+    // Dropbox uses path_lower, extract extension
+    const extension = document.path_lower.split('.').pop()?.toLowerCase();
+    return extension ? extension.toUpperCase() : 'Unknown';
+  }
+  
+  if (document.type) {
+    // Local files use 'type' - convert MIME type to readable format
+    if (document.type.startsWith('application/pdf')) return 'PDF';
+    if (document.type.startsWith('text/')) return 'Text';
+    if (document.type.startsWith('image/')) return 'Image';
+    if (document.type.startsWith('video/')) return 'Video';
+    if (document.type.startsWith('audio/')) return 'Audio';
+    
+    const parts = document.type.split('/');
+    return parts.length > 1 ? parts[1].toUpperCase() : 'Unknown';
+  }
+  
+  // Fallback: try to get from filename extension
+  const name = document.name || '';
+  const extension = name.split('.').pop()?.toLowerCase();
+  return extension ? extension.toUpperCase() : 'Unknown';
+}
+
+
+private extensionToMimeType(extension: string | undefined): string {
+  if (!extension) return 'application/octet-stream';
+  
+  const mimeTypes: { [key: string]: string } = {
+    // Documents
+    'pdf': 'application/pdf',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'xls': 'application/vnd.ms-excel',
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'ppt': 'application/vnd.ms-powerpoint',
+    'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'txt': 'text/plain',
+    'rtf': 'application/rtf',
+    'csv': 'text/csv',
+    
+    // Images
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'bmp': 'image/bmp',
+    'tiff': 'image/tiff',
+    'svg': 'image/svg+xml',
+    
+    // Archives
+    'zip': 'application/zip',
+    'rar': 'application/x-rar-compressed',
+    '7z': 'application/x-7z-compressed',
+    
+    // Others
+    'json': 'application/json',
+    'xml': 'text/xml',
+    'html': 'text/html',
+    'css': 'text/css',
+    'js': 'text/javascript'
+  };
+  
+  return mimeTypes[extension] || 'application/octet-stream';
+}
 
 
 }

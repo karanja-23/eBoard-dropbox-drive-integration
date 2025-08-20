@@ -1,3 +1,11 @@
+import {
+  Button
+} from "./chunk-QO5I36NM.js";
+import {
+  PlusIcon,
+  TimesIcon,
+  UploadIcon
+} from "./chunk-GTZK3ARO.js";
 import "./chunk-O6UUW7K5.js";
 import {
   animate,
@@ -6,30 +14,15 @@ import {
   trigger
 } from "./chunk-W334TBAC.js";
 import {
-  Button
-} from "./chunk-4D32HKR3.js";
-import {
   Ripple
 } from "./chunk-WOBDGGST.js";
 import "./chunk-5G7WYC4N.js";
-import {
-  PlusIcon,
-  TimesIcon,
-  UploadIcon
-} from "./chunk-GTZK3ARO.js";
 import {
   BaseComponent
 } from "./chunk-BDEUMMMG.js";
 import {
   BaseStyle
 } from "./chunk-N5JJWXNZ.js";
-import {
-  PrimeTemplate,
-  SharedModule,
-  TranslationKeys,
-  addClass,
-  removeClass
-} from "./chunk-WKMCBCMZ.js";
 import {
   DomSanitizer
 } from "./chunk-RKWVKYQH.js";
@@ -38,6 +31,13 @@ import {
   HttpEventType
 } from "./chunk-AZ63YRAI.js";
 import "./chunk-AQVX7F57.js";
+import {
+  PrimeTemplate,
+  SharedModule,
+  TranslationKeys,
+  addClass,
+  removeClass
+} from "./chunk-WKMCBCMZ.js";
 import {
   CommonModule,
   NgClass,
