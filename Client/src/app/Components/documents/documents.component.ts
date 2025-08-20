@@ -83,7 +83,8 @@ export class DocumentsComponent implements OnInit {
   setView(view: 'list' | 'grid') {
     this.currentView = view;
   }
-  async updateCombinedDocuments(): Promise<void> {
+  
+async updateCombinedDocuments(): Promise<void> {
   const dropboxDocs = this.dropboxDocuments || [];
   const localDocs = this.documents || [];
   const driveDocs = this.googleDriveDocuments || [];
@@ -153,8 +154,8 @@ export class DocumentsComponent implements OnInit {
     }
   });
 
-  // Set the combined array
-  this.dropBoxSynced = Array.from(docMap.values());
+  // Set the combined array and sort by name
+  this.dropBoxSynced = this.sortDocumentsByName(Array.from(docMap.values()));
   
   // Enhanced logging
   const tagStats = {
@@ -205,39 +206,74 @@ export class DocumentsComponent implements OnInit {
     }))
   );
 }
-
+private sortDocumentsByName(documents: any[]): any[] {
+  return documents.sort((a, b) => {
+    const nameA = (a.name || a.title || '').toLowerCase();
+    const nameB = (b.name || b.title || '').toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+}
 async getDriveDocuments(): Promise<void> {
-    try {
-      if (!this.driveService.isAuthenticated) {
-        console.error('Not authenticated with Google Drive');
-        return;
+  try {
+    if (!this.driveService.isAuthenticated) {
+      console.error('Not authenticated with Google Drive');
+      return;
+    }
+
+    console.log('Starting to load Google Drive files...');
+
+    const result = await this.driveService.listAllFiles({
+      progressCallback: (current: number) => {
+        console.log(`Progress: ${current} files loaded`);
       }
+    });
 
-      console.log('Starting to load Google Drive files...');
+    // Process each document to add normalized properties including type
+    this.googleDriveDocuments = result.files.map((doc: any) => {
+      return {
+        ...doc,
+        // Add the type property using your existing method
+        type: this.getDriveFileType(doc),
+        // Add normalized size
+        size: this.normalizeSize(doc.size),
+        // Add source identifier
+        source: 'drive'
+      };
+    });
+    
+    console.log(`Successfully loaded ${this.googleDriveDocuments.length} files`);
+    console.log('Sample Drive files with types:', 
+      this.googleDriveDocuments.slice(0, 5).map(f => ({
+        name: f.name,
+        type: f.type,
+        mimeType: f.mimeType,
+        size: f.size,
+        id: f.id
+      }))
+    );
+    
+    // Call updateCombinedDocuments after loading Drive files
+    await this.updateCombinedDocuments();
+    
+    console.log('Google Drive documents loaded and combined successfully');
 
-      const result = await this.driveService.listAllFiles({
-        progressCallback: (current: number) => {
-          console.log(`Progress: ${current} files loaded`);
-        }
-      });
-
-      // Fix: Assign to the correct property
-      this.googleDriveDocuments = result.files; // <-- Changed from this.getUser
-      
-      console.log(`Successfully loaded ${this.googleDriveDocuments.length} files`);
-      console.log('Sample Drive files:', this.googleDriveDocuments.slice(0, 2).map(f => f.name));
-      
-      // Call updateCombinedDocuments after loading Drive files
-      await this.updateCombinedDocuments();
-      
-      console.log('Google Drive documents loaded and combined successfully');
-
-    } catch (error) {
-      console.error('Failed to list all files:', error);
-      console.error('Error details:', error);
-    } 
+  } catch (error) {
+    console.error('Failed to list all files:', error);
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to load Google Drive documents'
+    });
+  } 
 }
 
+// Helper method to normalize size (add this if you don't have it)
+private normalizeSize(size: any): number {
+  if (typeof size === 'string') {
+    return parseInt(size) || 0;
+  }
+  return size || 0;
+}
   onDocumentClick(documentId: number) {
     this.router.navigate(['/documents', documentId]);
   }
@@ -548,6 +584,103 @@ private getFileType(filename: string): string {
   return mimeTypes[extension || ''] || 'application/octet-stream';
 }
 
+private getDriveFileType(document: any): string {
+  // Handle different ways files store type information
+  if (document.mimeType) {
+    // Google Drive uses mimeType - return user-friendly names
+    if (document.mimeType === 'application/vnd.google-apps.document') return 'Google Doc';
+    if (document.mimeType === 'application/vnd.google-apps.spreadsheet') return 'Google Sheet';
+    if (document.mimeType === 'application/vnd.google-apps.presentation') return 'Google Slides';
+    if (document.mimeType === 'application/vnd.google-apps.form') return 'Google Form';
+    if (document.mimeType === 'application/vnd.google-apps.drawing') return 'Google Drawing';
+    if (document.mimeType === 'application/pdf') return 'PDF';
+    if (document.mimeType === 'text/plain') return 'Text';
+    if (document.mimeType.startsWith('image/')) return 'Image';
+    if (document.mimeType.startsWith('video/')) return 'Video';
+    if (document.mimeType.startsWith('audio/')) return 'Audio';
+    
+    // For other MIME types, extract the subtype and make it readable
+    const parts = document.mimeType.split('/');
+    if (parts.length > 1) {
+      const subtype = parts[1];
+      // Convert common subtypes to readable names
+      if (subtype.includes('word')) return 'Word Document';
+      if (subtype.includes('excel') || subtype.includes('spreadsheet')) return 'Excel';
+      if (subtype.includes('powerpoint') || subtype.includes('presentation')) return 'PowerPoint';
+      if (subtype.includes('zip')) return 'ZIP Archive';
+      
+      // Capitalize first letter and remove technical prefixes
+      return subtype.replace(/^(vnd\.|x-|ms-)/, '').replace(/^\w/, (c: string) => c.toUpperCase());
+    }
+    
+    return document.mimeType;
+  }
+  
+  if (document.path_lower) {
+    // Dropbox uses path_lower, extract extension
+    const extension = document.path_lower.split('.').pop()?.toLowerCase();
+    return extension ? extension.toUpperCase() : 'Unknown';
+  }
+  
+  if (document.type) {
+    // Local files use 'type' - convert MIME type to readable format
+    if (document.type.startsWith('application/pdf')) return 'PDF';
+    if (document.type.startsWith('text/')) return 'Text';
+    if (document.type.startsWith('image/')) return 'Image';
+    if (document.type.startsWith('video/')) return 'Video';
+    if (document.type.startsWith('audio/')) return 'Audio';
+    
+    const parts = document.type.split('/');
+    return parts.length > 1 ? parts[1].toUpperCase() : 'Unknown';
+  }
+  
+  // Fallback: try to get from filename extension
+  const name = document.name || '';
+  const extension = name.split('.').pop()?.toLowerCase();
+  return extension ? extension.toUpperCase() : 'Unknown';
+}
+
+
+private extensionToMimeType(extension: string | undefined): string {
+  if (!extension) return 'application/octet-stream';
+  
+  const mimeTypes: { [key: string]: string } = {
+    // Documents
+    'pdf': 'application/pdf',
+    'doc': 'application/msword',
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'xls': 'application/vnd.ms-excel',
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'ppt': 'application/vnd.ms-powerpoint',
+    'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'txt': 'text/plain',
+    'rtf': 'application/rtf',
+    'csv': 'text/csv',
+    
+    // Images
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'bmp': 'image/bmp',
+    'tiff': 'image/tiff',
+    'svg': 'image/svg+xml',
+    
+    // Archives
+    'zip': 'application/zip',
+    'rar': 'application/x-rar-compressed',
+    '7z': 'application/x-7z-compressed',
+    
+    // Others
+    'json': 'application/json',
+    'xml': 'text/xml',
+    'html': 'text/html',
+    'css': 'text/css',
+    'js': 'text/javascript'
+  };
+  
+  return mimeTypes[extension] || 'application/octet-stream';
+}
 
 
 }
