@@ -108,21 +108,28 @@
     color: var(--sibasiWhite);
     transition: all 0.3s ease;
 }
-.table{
+table{
     margin-top: 20px;
     opacity: 0.9;
     width: 100%;
     box-sizing: border-box;
-}
-.table .pi-cloud{
-    color: blue;
-    font-size: 0.8rem;
+    padding-bottom: 50px;
+    
     
 }
-.table .pi-desktop{
-    color: green;
-    font-size: 0.7rem;
+
+.table img{
+    width: 16px;
+    height: 16px;    
+    margin-right: 10px;
    
+}
+
+.file-image img{
+    width: 25px; 
+    height: 25px;  
+    margin-right: 10px;
+    flex-shrink: 0;
 }
 .pi-file-pdf{
     color: #ef4444;

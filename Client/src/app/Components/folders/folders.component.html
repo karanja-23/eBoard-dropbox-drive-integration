@@ -1,6 +1,6 @@
 <div class="container">
   <div class="head">
-    <div class="upload" [style.z-index]="34" >
+    <div class="upload" [style.z-index]="34">
       <div class="upload-btn" (click)="showAddFolderDialog()">
         <i class="pi pi-plus"></i>
         <span>New Folder</span>
@@ -17,7 +17,6 @@
       <div
         class="upload-btn"
         style="background-color: var(--sibasiWhite); border: 1px solid #0f8bfd"
-       
       >
         <i class="pi pi-star" style="color: #0f8bfd"></i>
         <span style="color: #0f8bfd">Favourites</span>
@@ -26,11 +25,9 @@
         <i class="pi pi-search"></i>
         <input type="text" placeholder="Search" />
       </div>
-     
-      </div>
     </div>
-     <div class="table" >
-   
+  </div>
+  <div class="table">
     <div class="card" style="padding-left: 25px">
       <p-table
         [value]="folders"
@@ -39,42 +36,59 @@
       >
         <ng-template #header>
           <tr>
-            <th> </th>
-            <th> </th>
-            <th> </th>
-            <th> </th>
-            <th> </th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
           </tr>
         </ng-template>
         <ng-template #body let-folder>
           <tr>
-            
             <td style="display: flex; align-items: center; gap: 8px">
-  <div class="folder-icon-container">
-    <img src="assets/folder.png" alt="" />
-    <i 
-      [class]="folder.path_lower ? 'pi pi-cloud icon-badge' : 'pi pi-desktop icon-badge'"
-    ></i>
-  </div>
-  <span  style="color: #2f6699; text-decoration: underline; text-underline-offset: 2px; cursor: pointer;" (click)="navigateToFolder(folder); $event.stopPropagation()">
-    <span style="font-weight: 900; font-size: 1.1rem;">. /</span>
-    <span style="font-size: 0.9rem; font-weight: 700;">{{folder.name | lowercase}}</span>
-  </span>
-</td>
-            <td> </td>
-            <td> </td>
-            <td> </td>
+              <div class="folder-icon-container">
+                <img class="folder-img" src="assets/folder.png" alt="" />
+                <img 
+                class="icon-badge"
+                 *ngIf="folder.path_lower"
+                 src="assets/dropbox.png"
+                />
+                 <img *ngIf="folder.user_id"
+                 class="icon-badge"
+                  src="assets/save.png"
+                 />
+
+                <img *ngIf="folder.name && !folder.date_created && !folder.path_lower"
+                  class="icon-badge"
+                  src="assets/google-drive.png"
+                />
+                
+              </div>
+              <span
+                style="
+                  color: #2f6699;
+                  text-decoration: underline;
+                  text-underline-offset: 2px;
+                  cursor: pointer;
+                "
+                (click)="navigateToFolder(folder); $event.stopPropagation()"
+              >
+                <span style="font-weight: 900; font-size: 1.1rem">. /</span>
+                <span style="font-size: 0.9rem; font-weight: 700">{{
+                  folder.name | lowercase
+                }}</span>
+              </span>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
             <td class="actions"></td>
           </tr>
         </ng-template>
       </p-table>
     </div>
-   
   </div>
-    
-  </div>
-  
- 
+</div>
 
 <p-dialog
   header="Add New Folder"
@@ -84,32 +98,35 @@
   [style]="{ width: '25rem' }"
   styleClass="modal"
 >
-  
   <div class="form">
     <div class="field">
-    <label for="name">Name</label>
-    <input
-      type="text"
-      id="name"
-      pInputText
-      [(ngModel)]="newFolderName"
-      placeholder="Enter folder name"
-    />
+      <label for="name">Name</label>
+      <input
+        type="text"
+        id="name"
+        pInputText
+        [(ngModel)]="newFolderName"
+        placeholder="Enter folder name"
+      />
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        pInputTextarea
+        [(ngModel)]="newFolderDescription"
+        rows="3"
+        placeholder="Enter folder description"
+      ></textarea>
+    </div>
   </div>
-  <div class="field">
-    <label for="description">Description</label>
-    <textarea
-      id="description"
-      pInputTextarea
-      [(ngModel)]="newFolderDescription"
-      rows="3"
-      placeholder="Enter folder description"
-    ></textarea>
-  </div>
-  </div>
-  <button [className]="newFolderName && newFolderDescription ? 'btn' : 'disabled'" (click)="addFolder()" [disabled]="!newFolderName && !newFolderDescription">
+  <button
+    [className]="newFolderName && newFolderDescription ? 'btn' : 'disabled'"
+    (click)="addFolder()"
+    [disabled]="!newFolderName && !newFolderDescription"
+  >
     <i class="pi pi-save"></i>
     <span>Save</span>
   </button>
-  </p-dialog>
-  <p-toast></p-toast>
+</p-dialog>
+<p-toast></p-toast>

@@ -682,5 +682,70 @@ private extensionToMimeType(extension: string | undefined): string {
   return mimeTypes[extension] || 'application/octet-stream';
 }
 
+async syncToGoogleDrive(document: any): Promise<void> {
+ 
+  try {
+    if (!this.driveSync) {
+      console.log('Google Drive sync is not enabled');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning', 
+        detail: 'Google Drive sync is not enabled'
+      });
+      return;
+    }
+    console.log('Syncing document to Google Drive:', document);
+    if (!document?.document) {
+      throw new Error('Document content is missing');
+    }
 
+    const cleanFileName = this.sanitizeFileName(document.name);
+    
+    let fileBlob: Blob;
+    
+    if (document.document.includes('base64,')) {
+      // Data URL format
+      const base64Data = document.document.split('base64,')[1];
+      fileBlob = this.base64ToBlob(base64Data, document.type);
+    } else if (document.document.startsWith('data:')) {
+      // Other data URL format
+      const response = await fetch(document.document);
+      fileBlob = await response.blob();
+    } else {
+      // Raw base64
+      fileBlob = this.base64ToBlob(document.document, document.type);
+    }
+
+    if (!fileBlob || fileBlob.size === 0) {
+      throw new Error('Failed to create valid file from document content');
+    }
+
+    // Create File object from blob
+    const file = new File([fileBlob], cleanFileName, { 
+      type: document.type || 'application/octet-stream' 
+    });
+
+    // Upload to Google Drive
+    const response = await this.driveService.uploadFile(file, cleanFileName);
+    console.log('Google Drive upload response:', response);
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: `Document "${cleanFileName}" synced to Google Drive successfully`
+    });
+
+    // Refresh data
+    await this.getDriveDocuments();
+    await this.updateCombinedDocuments();
+
+  } catch (error: any) {
+    console.error('Google Drive sync failed:', error.message || error);
+    
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Sync Failed',
+      detail: error.message || 'Failed to sync document to Google Drive'
+    });
+  }
+}
 }
