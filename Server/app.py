@@ -88,7 +88,7 @@ def update_dropbox_sync(user_id):
     user.dropbox_sync = not user.dropbox_sync
     db.session.commit()
     return jsonify({"message": "Dropbox sync updated successfully"}), 200
-app.route('/update_drive_sync/<int:user_id>', methods=['PUT'])
+@app.route('/update_drive_sync/<int:user_id>', methods=['PUT'])
 def update_drive_sync(user_id):
     user = User.query.get_or_404(user_id)
     user.drive_sync = not user.drive_sync

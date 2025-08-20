@@ -406,6 +406,10 @@
   position: relative !important;
   padding:  0 !important;
  border: none  !important;
+ min-height: auto !important;
+  max-height: 900px !important;
+  overflow-y: auto !important;
+  z-index: 1000 !important;
 }
 
 ::ng-deep .popover.p-popover .p-popover-content ul {

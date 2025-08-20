@@ -11,6 +11,7 @@ import { DialogModule } from "primeng/dialog";
 import { MessageService } from "primeng/api";
 import { FileUploadModule } from "primeng/fileupload";
 import { Router } from "@angular/router";
+import { GoogleDriveService } from "../../Services/google-drive.service";
 @Component({
   selector: "app-view-folder",
   imports: [
@@ -35,6 +36,7 @@ export class ViewFolderComponent implements OnInit {
   localDocuments: Documents[] = [];
   dropboxDocuments: Documents[] = [];
   taggedDocuments: Documents[] = [];
+  driveDocuments: Documents[] = [];
 
   showAddDocumentDialog: boolean = false;
 
@@ -42,7 +44,8 @@ export class ViewFolderComponent implements OnInit {
     private documentsService: DocumentsService,
     private dropboxService: DropboxService,
     private messageService: MessageService,
-    private router: Router
+    private router: Router,
+    private driveService: GoogleDriveService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -68,13 +71,20 @@ export class ViewFolderComponent implements OnInit {
         this.path
       );
       console.log("Dropbox Documents:", this.dropboxDocuments);
-    } else {
+    } else if (this.source === "google-drive") {
+      this.driveDocuments = await this.driveService.listFilesInFolder(
+        this.folderId
+      );
+      console.log("Google Drive Documents:", this.driveDocuments);
+      
+    }
+   else {
       console.error("Unknown source:", this.source);
       return;
     }
   }
   allDocumentsToShow() {
-    this.taggedDocuments = [...this.localDocuments, ...this.dropboxDocuments];
+    this.taggedDocuments = [...this.localDocuments, ...this.dropboxDocuments ,...this.driveDocuments  ];
     this.setTags(this.taggedDocuments);
   }
   async setTags(docs: any[]) {
@@ -83,7 +93,11 @@ export class ViewFolderComponent implements OnInit {
         doc.tags = ["dropbox"];
       } else if ("date_created" in doc) {
         doc.tags = ["local"];
-      } else {
+      } 
+      else if('createdTime' in doc) {
+        doc.tags = ["google-drive"];
+      }
+      else {
         doc.tags = [];
       }
     });
@@ -94,4 +108,29 @@ export class ViewFolderComponent implements OnInit {
   async openDropboxDocument(document: Documents) {
     await this.dropboxService.openDocument(document.id.toString());
   }
+  getDocumentType(document: any): string {
+  try {
+    // First try path_lower (for Dropbox files)
+    if (document.path_lower && document.path_lower.includes('.')) {
+      const extension = document.path_lower.split('.').pop();
+      return extension || 'unknown';
+    }
+    
+    // Then try document.type (for local files)
+    if (document.type && document.type.includes('/')) {
+      return document.type.split('/')[1] || 'unknown';
+    }
+    
+    // Finally try mimeType (for Google Drive files)
+    if (document.mimeType && document.mimeType.includes('/')) {
+      return document.mimeType.split('/')[1] || 'unknown';
+    }
+    
+    return 'unknown';
+  } catch (error) {
+    console.warn('Error getting document type:', error);
+    return 'unknown';
+  }
+}
+  
 }

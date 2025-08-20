@@ -1,6 +1,6 @@
 <div class="container">
   <div class="head">
-    <div class="upload" [style.z-index]="34" >
+    <div class="upload" [style.z-index]="34">
       <div class="upload-btn" (click)="showAddDocumentDialog = true">
         <i class="pi pi-plus"></i>
         <span>Upload</span>
@@ -17,7 +17,6 @@
       <div
         class="upload-btn"
         style="background-color: var(--sibasiWhite); border: 1px solid #0f8bfd"
-       
       >
         <i class="pi pi-star" style="color: #0f8bfd"></i>
         <span style="color: #0f8bfd">Favourites</span>
@@ -82,53 +81,85 @@
         paginator="true"
         [rows]="7"
         [rowsPerPageOptions]="[10, 20, 30]"
-        
       >
         <ng-template #header>
           <tr>
             <th>Name</th>
-            <th>tags</th>
-            <th>size</th>
+            <th>Source</th>
+            <th>Size</th>
             <th>Type</th>
             <th></th>
           </tr>
         </ng-template>
-        <ng-template #body let-document>
-          <tr>  
+        <ng-template #body let-document >
+          <tr *ngIf="document.type !== 'Google-apps.folder'">
             <!--(click)="onDocumentClick(document.id)"-->
-            <td class="file-image" >
-               <img   *ngIf="document.type === 'application/pdf' || document.type === 'PDF' || document.type === 'pdf' || document.path_lower?.endsWith('.pdf')" src="assets/pdf.png" class="pdf-icon" alt="PDF Icon" />
-               <img *ngIf="document.type === 'image/png' || document.type === 'image/jpeg' || document.type === 'image/jpg' || document.path_lower?.endsWith('.png') || document.path_lower?.endsWith('.jpg') || document.path_lower?.endsWith('.jpeg')" src="assets/photo.png" class="image-icon" alt="Image Icon" />
-               <img *ngIf="document.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || document.type === 'Google Doc' || document.path_lower?.endsWith('.docx')" src="assets/doc.png" class="word-icon" alt="Word Icon" />
-              {{ document.name }}</td>
+            <td class="file-image">
+              <img
+                *ngIf="
+                  document.type === 'application/pdf' ||
+                  document.type === 'PDF' ||
+                  document.type === 'pdf' ||
+                  document.path_lower?.endsWith('.pdf')
+                "
+                src="assets/pdf.png"
+                class="pdf-icon"
+                alt="PDF Icon"
+              />
+              <img
+                *ngIf="
+                  document.type === 'image/png' ||
+                  document.type === 'image/jpeg' ||
+                  document.type === 'image/jpg' ||
+                  document.path_lower?.endsWith('.png') ||
+                  document.path_lower?.endsWith('.jpg') ||
+                  document.path_lower?.endsWith('.jpeg')
+                "
+                src="assets/photo.png"
+                class="image-icon"
+                alt="Image Icon"
+              />
+              <img
+                *ngIf="
+                  document.type ===
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                  document.type === 'Google Doc' ||
+                  document.path_lower?.endsWith('.docx')
+                "
+                src="assets/doc.png"
+                class="word-icon"
+                alt="Word Icon"
+              />
+              {{ document.name }}
+            </td>
             <td>
               <ng-container *ngIf="document.tags?.length; else noTags">
                 <span
                   *ngFor="let tag of document.tags; let i = index"
                   class="tag"
                 >
-                <img
+                  <img
                     *ngIf="tag === 'drive'"
                     src="assets/google-drive.png"
                     class="google"
                     style="margin-right: 0.25rem"
                     title="Google drive"
-                  >
+                  />
                   <img
                     *ngIf="tag === 'local'"
                     src="assets/save.png"
                     class="desktop"
                     style="margin-right: 0.25rem"
                     title="Local"
-                  >
+                  />
                   <img
-                   *ngIf="tag === 'dropbox'"
+                    *ngIf="tag === 'dropbox'"
                     src="assets/dropbox.png"
                     class="cloud"
                     style="margin-right: 0.25rem"
                     title="Dropbox"
-                  >
-                  
+                  />
+
                   <span *ngIf="i < document.tags.length - 1">, </span>
                 </span>
               </ng-container>
@@ -137,19 +168,18 @@
               </ng-template>
             </td>
             <td>{{ document.size / (1024 * 1024) | number : "1.2-2" }} MB</td>
-            
 
-<td>
-  {{
-    document.path_lower 
-      ? document.path_lower.split(".").pop()?.toUpperCase() 
-      : document.type?.includes('/') 
-        ? document.type.split("/")[1]?.toUpperCase()
-        : document.tags?.includes('drive')
-          ? document.type
-          : document.type?.toUpperCase() || 'Unknown'
-  }}
-</td>
+            <td>
+              {{
+                document.path_lower
+                  ? document.path_lower.split(".").pop()?.toUpperCase()
+                  : document.type?.includes("/")
+                  ? document.type.split("/")[1]?.toUpperCase()
+                  : document.tags?.includes("drive")
+                  ? document.type
+                  : document.type?.toUpperCase() || "Unknown"
+              }}
+            </td>
             <td>
               <i class="pi pi-ellipsis-v" (click)="op.toggle($event)">
                 <p-popover
@@ -159,28 +189,37 @@
                 >
                   <div class="popover-content">
                     <ul>
-                        <li>
-                            <i class="pi pi-eye"></i> view
-                        </li>
+                      <li><i class="pi pi-eye"></i> view</li>
                       <li
                         *ngIf="
-                          (
-                            !(document.tags?.includes('dropbox')) &&
-                            document.tags?.includes('local')
-                          )
+                          !document.tags?.includes('dropbox') &&
+                          document.tags?.includes('local')
                         "
                         (click)="syncToDropbox(document)"
                       >
                         <i class="pi pi-cloud"></i> sync to Dropbox
                       </li>
-                      <li *ngIf="(
-                        !(document.tags?.includes('local')) &&
-                        document.tags?.includes('dropbox')
-                      )"
+                      <li
+                        *ngIf="
+                          !document.tags?.includes('local') &&
+                          document.tags?.includes('dropbox')
+                        "
                         (click)="downloadToLocal(document)"
                       >
-                        <i class="pi pi-desktop" style="font-size: 0.8rem;"></i> Save from dropbox
-                        </li>
+                        <i class="pi pi-desktop" style="font-size: 0.8rem"></i>
+                        Save from dropbox
+                      </li>
+                      <li 
+                        *ngIf="
+                          !document.tags?.includes('drive') &&
+                          document.tags?.includes('local')
+                        "
+                        (click)="syncToGoogleDrive(document)"
+                      >
+                        <i class="pi pi-google" style="font-size: 0.8rem"></i>
+                        Sync to Google Drive
+
+                      </li>
                     </ul>
                   </div>
                 </p-popover>

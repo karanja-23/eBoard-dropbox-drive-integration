@@ -10,6 +10,8 @@ import { PopoverModule } from 'primeng/popover';
 import { DropboxService } from '../../Services/dropbox-service.service';
 import { Router, RouterModule } from '@angular/router';
 import { Folder } from '../../Interfaces/folder';
+import { GoogleDriveService } from '../../Services/google-drive.service';
+import e from 'express';
 
 @Component({
   selector: 'app-folders',
@@ -26,16 +28,19 @@ export class FoldersComponent implements OnInit {
   newFolderDescription: string = '';
   localfolders: any[] = [];
   dropoxFolders: any[] = [];
-  folders: any[] = []; // This will hold the folders fetched from Dropbox
+  driveFolders: any[] = [];
+  folders: any[] = []; 
 
   ngOnInit(): void {
+    
     this.getallFolders();
   }
   constructor(
     private documentsService: DocumentsService,
     private messageService: MessageService,
     private dropboxService: DropboxService,
-    private router: Router
+    private router: Router,
+    private driveService: GoogleDriveService
   ){ }
 
   showAddFolderDialog() {
@@ -89,7 +94,8 @@ export class FoldersComponent implements OnInit {
     try {
       this.localfolders = await this.documentsService.getFolders();
       this.dropoxFolders = await this.dropboxService.listFolders();
-      this.folders = [...this.localfolders, ...this.dropoxFolders];
+      await this.getDriveFolders();
+      this.folders = [...this.localfolders, ...this.dropoxFolders, ...this.driveFolders];
       console.log("All folders fetched successfully:", this.folders);
     } catch (error) {
       console.error("Error fetching all folders:", error);
@@ -112,9 +118,24 @@ export class FoldersComponent implements OnInit {
       return 'dropbox';
     } else if (folder.date_created) {
       return 'local';
-    } else {
+    } else if (folder.name && !folder.date_created) {
+      return 'google-drive';
+    }
+    else {
       return 'unknown';
     }
   }
- 
+  async getDriveFolders() {
+    
+    try{
+      this.driveFolders = await this.driveService.listFolders();
+      console.log("Google Drive folders fetched successfully:", this.driveFolders);
+    }
+    catch (error) {
+      this.driveFolders = [];
+      console.error("Error fetching folders from Google Drive:", error);
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch folders from Google Drive.' });
+    }
+  }
+
 }

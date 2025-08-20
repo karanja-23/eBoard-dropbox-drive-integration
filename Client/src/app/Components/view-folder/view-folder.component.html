@@ -64,18 +64,27 @@
                   *ngFor="let tag of document.tags; let i = index"
                   class="tag"
                 >
-                  <i
+                  <img
+                    *ngIf="tag === 'google-drive'"
+                    src="assets/google-drive.png"
+                    class="google"
+                    style="margin-right: 0.25rem"
+                    title="Google drive"
+                  />
+                  <img
                     *ngIf="tag === 'local'"
-                    class="pi pi-desktop"
+                    src="assets/save.png"
+                    class="desktop"
                     style="margin-right: 0.25rem"
                     title="Local"
-                  ></i>
-                  <i
+                  />
+                  <img
                     *ngIf="tag === 'dropbox'"
-                    class="pi pi-cloud"
+                    src="assets/dropbox.png"
+                    class="cloud"
                     style="margin-right: 0.25rem"
                     title="Dropbox"
-                  ></i>
+                  />
                   <span *ngIf="i < document.tags.length - 1">, </span>
                 </span>
               </ng-container>
@@ -86,9 +95,7 @@
             <td>{{ document.size / (1024 * 1024) | number : "1.2-2" }} MB</td>
             <td>
               {{
-                document.path_lower
-                  ? document.path_lower.split(".")[1]
-                  : document.type.split("/")[1]
+                getDocumentType(document) 
               }}
             </td>
             <td>
