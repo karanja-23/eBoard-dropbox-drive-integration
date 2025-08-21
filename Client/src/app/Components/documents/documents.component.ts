@@ -13,6 +13,7 @@ import { HttpClient } from '@angular/common/http';
 import { DropboxService } from '../../Services/dropbox-service.service';
 import { PopoverModule } from 'primeng/popover';
 import { GoogleDriveService } from '../../Services/google-drive.service';
+import { LoadingComponent } from '../loading/loading.component';
 interface Document {
   id: number;
   name: string;
@@ -37,7 +38,8 @@ interface Document {
     FileUploadModule, 
     FormsModule,
     ToastModule,
-    PopoverModule
+    PopoverModule,
+    LoadingComponent
   ],
   providers: [
     MessageService], 
@@ -61,22 +63,29 @@ export class DocumentsComponent implements OnInit {
   dropBoxSynced: any[] = [];
 
   googleDriveDocuments: any[] = [];
+  driveAuthenticated: boolean = false;
+
+  isLoading:boolean = true;
 
   constructor(
+    
     private documentsService: DocumentsService,
     private router: Router,
     private messageService: MessageService,
     private http: HttpClient,
     private dropboxService: DropboxService,
     private driveService: GoogleDriveService
+
   ) {
     
   }
   async ngOnInit() {
+    this.isLoading = true; 
     await this.getUser(1); // Replace with actual user ID
-    await this.getDropboxDocuments();
-    await this.getDriveDocuments();
+    await this.getDropboxDocuments();  
+    await this.getDriveDocuments(); 
     await this.updateCombinedDocuments();
+    
 
   }
 
@@ -84,6 +93,7 @@ export class DocumentsComponent implements OnInit {
     this.currentView = view;
   }
   
+
 async updateCombinedDocuments(): Promise<void> {
   const dropboxDocs = this.dropboxDocuments || [];
   const localDocs = this.documents || [];
@@ -133,6 +143,7 @@ async updateCombinedDocuments(): Promise<void> {
       doc.tags = ['dropbox'];
       docMap.set(key, doc);
     }
+    this.isLoading = false;
   });
 
   // Add Google Drive docs, merge tags if already present
@@ -747,5 +758,9 @@ async syncToGoogleDrive(document: any): Promise<void> {
       detail: error.message || 'Failed to sync document to Google Drive'
     });
   }
+}
+downloadToLocalFromDrive(documentId: string): void {
+  
+   
 }
 }

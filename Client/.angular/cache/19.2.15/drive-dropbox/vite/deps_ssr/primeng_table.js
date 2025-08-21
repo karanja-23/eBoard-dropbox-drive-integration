@@ -3,6 +3,10 @@ import {
   Tooltip
 } from "./chunk-5ZRI55EF.js";
 import {
+  Scroller,
+  ScrollerModule
+} from "./chunk-PHHJIMKC.js";
+import {
   ObjectUtils,
   UniqueComponentId,
   zindexutils
@@ -17,10 +21,6 @@ import {
   trigger,
   useAnimation
 } from "./chunk-SFWD6R3E.js";
-import {
-  Scroller,
-  ScrollerModule
-} from "./chunk-PHHJIMKC.js";
 import {
   AutoFocus,
   Button,

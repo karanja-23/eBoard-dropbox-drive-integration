@@ -220,6 +220,15 @@
                         Sync to Google Drive
 
                       </li>
+                      <li
+                        *ngIf="
+                          !document.tags?.includes('local') &&
+                          document.tags?.includes('drive')
+                        "
+                        (click)="downloadToLocalFromDrive(document.id)"
+                      >
+                        <i class="pi pi-desktop" style="font-size: 0.8rem"></i>
+                        Save from Google Drive
                     </ul>
                   </div>
                 </p-popover>
@@ -282,3 +291,6 @@
     </p-fileupload>
   </div>
 </p-dialog>
+<app-loading
+  *ngIf="isLoading"
+></app-loading>

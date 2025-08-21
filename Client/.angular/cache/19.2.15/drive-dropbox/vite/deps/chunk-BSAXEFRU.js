@@ -3,7 +3,7 @@ import {
 } from "./chunk-W334TBAC.js";
 import {
   DOCUMENT
-} from "./chunk-I2LGPQFU.js";
+} from "./chunk-OV3HJYGZ.js";
 import {
   ANIMATION_MODULE_TYPE,
   Inject,
@@ -190,4 +190,4 @@ function isAnimationRenderer(renderer) {
    * License: MIT
    *)
 */
-//# sourceMappingURL=chunk-O6UUW7K5.js.map
+//# sourceMappingURL=chunk-BSAXEFRU.js.map

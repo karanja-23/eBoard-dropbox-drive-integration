@@ -643,4 +643,11 @@ private async checkInitialAuthStatus(): Promise<void> {
     
     return response;
   }
+  getDocumentFile(fileId: string) {
+    if (!this.checkAvailability() || !this.isAuthenticated) {
+      throw new Error('Service not ready or user not authenticated');
+    }
+
+    
+  }
 }
