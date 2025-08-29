@@ -58,7 +58,8 @@
           <tr>
             <!--(click)="onDocumentClick(document.id)"-->
             <td class="file-image">
-              <img
+               <div style="display: flex; align-items: center;">
+                 <img
                 *ngIf="
                   document.type === 'application/pdf' ||
                   document.type === 'PDF' ||
@@ -95,6 +96,8 @@
                 alt="Word Icon"
               />
               {{ document.name }}
+               </div>
+              
             </td>
             <td>
               <ng-container *ngIf="document.tags?.length; else noTags">

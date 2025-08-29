@@ -601,6 +601,245 @@
   opacity: 0.84 !important;
   letter-spacing: 1px !important;
 }
+
+
+
+:ng-deep .source-selection-modal .p-checkbox {
+    /* Checkbox container */
+    .p-checkbox-box {
+        background-color: var(--sibasiWhite, #ffffff) !important;
+        border: 2px solid #d1d5db !important;
+        color: #333333 !important;
+    }
+}
+::ng-deep.source-selection-modal {
+            background-color: var(--sibasiWhite, #ffffff) !important;
+            color: var(--text-color, #333333) !important;
+            min-width: 480px !important;
+            border-radius: 12px !important;
+            padding: 0 !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Header Styling */
+        .source-selection-modal .p-dialog-header {
+            padding: 24px 24px 16px 24px !important;
+            border-bottom: 1px solid var(--border-color, #e5e7eb) !important;
+            background: var(--sibasiWhite, #ffffff) !important;
+        }
+
+        .source-selection-modal .p-dialog-header .p-dialog-title {
+            font-size: 1.5rem !important;
+            font-weight: 600 !important;
+            color: var(--text-color, #1f2937) !important;
+        }
+
+        /* Close button styling */
+        .source-selection-modal .p-dialog-header-close {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 6px !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .source-selection-modal .p-dialog-header-close:hover {
+            background-color: var(--sibasiHover, #f3f4f6) !important;
+            color: var(--text-color, #374151) !important;
+        }
+
+        /* Content Area */
+        .source-selection-modal .p-dialog-content {
+            padding: 24px !important;
+            background: var(--sibasiWhite, #ffffff) !important;
+        }
+
+        /* Container Styles */
+        .select-source-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .select-source-container .head {
+            text-align: center;
+        }
+
+        .select-source-container .head span {
+            font-size: 0.95rem;
+            color: var(--text-secondary, #6b7280);
+            line-height: 1.5;
+        }
+
+        /* Options Container */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Individual Option Styling */
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border: 2px solid var(--border-color, #e5e7eb);
+            border-radius: 10px;
+            background: var(--option-bg, #fafafa);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .option:hover {
+            border-color: var(--primary-color, #3b82f6);
+            background: var(--option-hover-bg, #f8fafc);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .option.selected {
+            border-color: var(--primary-color, #3b82f6);
+            background: var(--primary-light, #eff6ff);
+        }
+
+        /* Icon Styling */
+        .option-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            padding: 4px;
+            background: var(--icon-bg, #ffffff);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        .option-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Text Content */
+        .option-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .option-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color, #1f2937);
+            margin: 0;
+        }
+
+        .option-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary, #6b7280);
+            margin: 0;
+        }
+
+        /* Checkbox Container */
+        .check-box {
+            flex-shrink: 0;
+        }
+
+        /* Footer Actions */
+        .modal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color, #e5e7eb);
+            margin-top: 8px;
+        }
+
+        .selection-count {
+            font-size: 0.875rem;
+            color: var(--text-secondary, #6b7280);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Button Styles */
+        .btn-secondary {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color, #d1d5db);
+            background: var(--sibasiWhite, #ffffff);
+            color: var(--text-color, #374151);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--sibasiHover, #f9fafb);
+            border-color: var(--border-hover, #9ca3af);
+        }
+
+        .btn-primary {
+            padding: 8px 20px;
+            background: var(--primary-color, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover, #2563eb);
+        }
+
+        .btn-primary:disabled {
+            background: var(--disabled-color, #9ca3af);
+            cursor: not-allowed;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            .source-selection-modal {
+                min-width: 90vw !important;
+                margin: 16px !important;
+            }
+            
+            .option {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+            
+            .option-content {
+                align-items: center;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
 @media (max-width: 768px) {
     .grid-view {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
