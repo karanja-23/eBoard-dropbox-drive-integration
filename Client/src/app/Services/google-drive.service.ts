@@ -643,4 +643,214 @@ private async checkInitialAuthStatus(): Promise<void> {
     
     return response;
   }
+  async getFileMetadata(fileId: string): Promise<any> {
+  if (!this.checkAvailability() || !this.isAuthenticated) {
+    throw new Error('Service not ready or user not authenticated');
+  }
+
+  const fields = 'id,name,mimeType,size,modifiedTime,createdTime,version,parents,webViewLink,webContentLink,owners';
+  const response = await this.makeRequest(`/drive/v3/files/${fileId}?fields=${fields}`);
+  
+  return response;
+}
+
+/**
+ * Download file as ArrayBuffer (browser compatible)
+ */
+async downloadFileAsBuffer(fileId: string): Promise<ArrayBuffer> {
+  if (!this.checkAvailability() || !this.isAuthenticated) {
+    throw new Error('Service not ready or user not authenticated');
+  }
+
+  try {
+    // First get metadata to check file type
+    const metadata = await this.getFileMetadata(fileId);
+    console.log('File metadata:', {
+      name: metadata.name,
+      mimeType: metadata.mimeType,
+      size: metadata.size
+    });
+
+    // Check if it's a Google Workspace file
+    if (this.isGoogleWorkspaceFile(metadata.mimeType)) {
+      console.log('Exporting Google Workspace file...');
+      return await this.exportGoogleWorkspaceFile(fileId, metadata.mimeType);
+    } else {
+      console.log('Downloading regular file...');
+      return await this.downloadRegularFile(fileId);
+    }
+    
+  } catch (error) {
+    console.error('Download failed:', error);
+    throw error;
+  }
+}
+ async getDocumentFile(fileId: string): Promise<{
+  metadata: any;
+  base64Content: string;
+  exportedName?: string;
+}> {
+  const { metadata, content, exportedName } = await this.getFileWithContent(fileId);
+  
+  return {
+    metadata,
+    base64Content: this.arrayBufferToBase64(content), // This is your base64 string
+    exportedName
+  };
+}
+arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 8192; // Process in chunks to avoid call stack limits
+  let binary = '';
+  
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+    binary += String.fromCharCode(...chunk);
+  }
+  
+  return btoa(binary);
+}
+private isGoogleWorkspaceFile(mimeType: string): boolean {
+  const googleMimeTypes = [
+    'application/vnd.google-apps.document',      // Google Docs
+    'application/vnd.google-apps.spreadsheet',  // Google Sheets
+    'application/vnd.google-apps.presentation', // Google Slides
+    'application/vnd.google-apps.drawing',      // Google Drawings
+    'application/vnd.google-apps.form',         // Google Forms
+    'application/vnd.google-apps.script'        // Google Apps Script
+  ];
+  return googleMimeTypes.includes(mimeType);
+}
+
+/**
+ * Get export MIME type for Google Workspace files
+ */
+private getExportMimeType(googleMimeType: string): string {
+  const exportMap: { [key: string]: string } = {
+    'application/vnd.google-apps.document': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.google-apps.spreadsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.google-apps.presentation': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.google-apps.drawing': 'image/png',
+    'application/vnd.google-apps.form': 'application/zip',
+    'application/vnd.google-apps.script': 'application/vnd.google-apps.script+json'
+  };
+  
+  return exportMap[googleMimeType] || 'application/pdf';
+}
+
+/**
+ * Get file extension for export format
+ */
+private getExportExtension(mimeType: string): string {
+  const extensionMap: { [key: string]: string } = {
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+    'image/png': '.png',
+    'application/zip': '.zip',
+    'application/pdf': '.pdf',
+    'application/vnd.google-apps.script+json': '.json'
+  };
+  return extensionMap[mimeType] || '.pdf';
+}
+
+/**
+ * Get file metadata (update your existing method or add if missing)
+ */
+
+
+/**
+ * Download regular files (non-Google Workspace files)
+ */
+private async downloadRegularFile(fileId: string): Promise<ArrayBuffer> {
+  const token = this.getAccessToken();
+  if (!token) {
+    throw new Error('No access token available');
+  }
+
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
+  }
+
+  return await response.arrayBuffer();
+}
+
+/**
+ * Export Google Workspace files
+ */
+private async exportGoogleWorkspaceFile(fileId: string, mimeType: string): Promise<ArrayBuffer> {
+  const token = this.getAccessToken();
+  if (!token) {
+    throw new Error('No access token available');
+  }
+
+  const exportMimeType = this.getExportMimeType(mimeType);
+  
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=${encodeURIComponent(exportMimeType)}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to export file: ${response.status} ${response.statusText}`);
+  }
+
+  return await response.arrayBuffer();
+}
+
+/**
+ * Updated download method - replace your existing downloadFileAsBuffer
+ */
+
+
+/**
+ * Get file with content and proper naming
+ */
+async getFileWithContent(fileId: string): Promise<{ metadata: any, content: ArrayBuffer, exportedName?: string }> {
+  const metadata = await this.getFileMetadata(fileId);
+  const content = await this.downloadFileAsBuffer(fileId);
+  
+  let exportedName = metadata.name;
+  
+  if (this.isGoogleWorkspaceFile(metadata.mimeType)) {
+    const exportMimeType = this.getExportMimeType(metadata.mimeType);
+    const extension = this.getExportExtension(exportMimeType);
+    exportedName = metadata.name + extension;
+  }
+
+  return {
+    metadata,
+    content,
+    exportedName
+  };
+}
+
+/**
+ * Convert ArrayBuffer to base64 string
+ */
+
+
+/**
+ * Get file as base64 string (this is what you want!)
+ */
+async getFileAsBase64(fileId: string): Promise<{
+  metadata: any;
+  base64Content: string;
+  exportedName?: string;
+}> {
+  const { metadata, content, exportedName } = await this.getFileWithContent(fileId);
+  
+  return {
+    metadata,
+    base64Content: this.arrayBufferToBase64(content),
+    exportedName
+  };
+}
 }

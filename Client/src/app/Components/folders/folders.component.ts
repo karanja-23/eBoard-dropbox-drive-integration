@@ -11,11 +11,11 @@ import { DropboxService } from '../../Services/dropbox-service.service';
 import { Router, RouterModule } from '@angular/router';
 import { Folder } from '../../Interfaces/folder';
 import { GoogleDriveService } from '../../Services/google-drive.service';
-import e from 'express';
+import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
   selector: 'app-folders',
-  imports: [DialogModule, FormsModule, ToastModule, TableModule, CommonModule, RouterModule, PopoverModule],
+  imports: [DialogModule, FormsModule, ToastModule, TableModule, CommonModule, RouterModule, PopoverModule, LoadingComponent],
   templateUrl: './folders.component.html',
   styleUrl: './folders.component.css',
   providers: [MessageService],
@@ -31,8 +31,12 @@ export class FoldersComponent implements OnInit {
   driveFolders: any[] = [];
   folders: any[] = []; 
 
-  ngOnInit(): void {
-    
+  driveAuthenticated: boolean = false;
+  isLoading: boolean = true;
+
+  async ngOnInit(): Promise<void> {
+    this.isLoading = true;
+       
     this.getallFolders();
   }
   constructor(
@@ -97,6 +101,7 @@ export class FoldersComponent implements OnInit {
       await this.getDriveFolders();
       this.folders = [...this.localfolders, ...this.dropoxFolders, ...this.driveFolders];
       console.log("All folders fetched successfully:", this.folders);
+      this.isLoading = false;
     } catch (error) {
       console.error("Error fetching all folders:", error);
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch all folders.' });

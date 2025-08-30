@@ -95,7 +95,8 @@
           <tr *ngIf="document.type !== 'Google-apps.folder'">
             <!--(click)="onDocumentClick(document.id)"-->
             <td class="file-image">
-              <img
+              <div style="display: flex; align-items: center;">
+                <img
                 *ngIf="
                   document.type === 'application/pdf' ||
                   document.type === 'PDF' ||
@@ -130,7 +131,40 @@
                 class="word-icon"
                 alt="Word Icon"
               />
+              <img 
+                *ngIf="
+                  document.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                  document.type === 'Google Sheet'
+                "
+                src="assets/sheets.png"
+                class="sheet-icon"
+                alt="Sheet Icon"
+              />
+              <img 
+                *ngIf="
+                  document.type ==='Word Document' 
+                "
+                src="assets/word.png"
+                class="word-icon"
+
+              />
+              <img 
+                *ngIf="
+                  document.type ==='Google Slides'
+                "
+                src="assets/slides.png"
+                class="slides-icon"
+                
+              />
+              <img 
+                *ngIf="
+                  document.type ==='Video'
+                  "
+                src="assets/reel.png"
+                class="video-icon"
+              />
               {{ document.name }}
+              </div>
             </td>
             <td>
               <ng-container *ngIf="document.tags?.length; else noTags">
@@ -220,6 +254,15 @@
                         Sync to Google Drive
 
                       </li>
+                      <li
+                        *ngIf="
+                          !document.tags?.includes('local') &&
+                          document.tags?.includes('drive')
+                        "
+                        (click)="downloadToLocalFromDrive(document.id)"
+                      >
+                        <i class="pi pi-desktop" style="font-size: 0.8rem"></i>
+                        Save from Google Drive
                     </ul>
                   </div>
                 </p-popover>
@@ -282,3 +325,109 @@
     </p-fileupload>
   </div>
 </p-dialog>
+<app-loading
+  *ngIf="isLoading"
+></app-loading>
+
+
+
+
+<ng-container *ngIf="isBrowser">
+  <p-dialog
+    header="Select File Sources"
+    [modal]="true"
+    [blockScroll]="true"
+    [style]="{ width: '32rem' }"
+    [(visible)]="showSelectDocSourceModal"
+    [closable]="true"
+    [styleClass]="'source-selection-modal'"
+    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    [maximizable]="false"
+  >
+    <div class="select-source-container">
+      <div class="head">
+        <span>Choose which sources to load documents from</span>
+      </div>
+      
+      <div class="options">
+        <div class="option" 
+             [class.selected]="localSync"
+             (click)="toggleSource('local')">
+          <div class="option-icon">
+            <img src="assets/save.png" alt="Database Files" />
+          </div>
+          <div class="option-content">
+            <p class="option-title">Database Files</p>
+            <p class="option-description">Your documents saved on Ebooard</p>
+          </div>
+          <div class="check-box">
+            <p-checkbox 
+              [(ngModel)]="localSync" 
+              [binary]="true"
+              (click)="$event.stopPropagation()">
+            </p-checkbox>
+          </div>
+        </div>
+
+        <div class="option" 
+             [class.selected]="googleDriveSync"
+             (click)="toggleSource('drive')">
+          <div class="option-icon">
+            <img src="assets/google-drive.png" alt="Google Drive" />
+          </div>
+          <div class="option-content">
+            <p class="option-title">Google Drive</p>
+            <p class="option-description">Google cloud Documents</p>
+          </div>
+          <div class="check-box">
+            <p-checkbox 
+              [(ngModel)]="googleDriveSync" 
+              [binary]="true"
+              (click)="$event.stopPropagation()">
+            </p-checkbox>
+          </div>
+        </div>
+
+        <div class="option" 
+             [class.selected]="dropBoxSync"
+             (click)="toggleSource('dropbox')">
+          <div class="option-icon">
+            <img src="assets/dropbox.png" alt="Dropbox" />
+          </div>
+          <div class="option-content">
+            <p class="option-title">Dropbox</p>
+            <p class="option-description">Dropbox Documents</p>
+          </div>
+          <div class="check-box">
+            <p-checkbox 
+              [(ngModel)]="dropBoxSync" 
+              [binary]="true"
+              (click)="$event.stopPropagation()">
+            </p-checkbox>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="selection-count">
+          <span>{{ getSelectionCount() }} source{{ getSelectionCount() !== 1 ? 's' : '' }} selected</span>
+        </div>
+        <div class="modal-actions">
+          <button 
+            pButton 
+            label="Cancel" 
+            class="p-button-secondary btn-secondary"
+            (click)="cancelSelection()">
+          </button>
+          <button 
+            pButton 
+            label="Continue" 
+            class="btn-primary"
+            [disabled]="getSelectionCount() === 0"
+            (click)="confirmSelection()">
+          </button>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+</ng-container>
