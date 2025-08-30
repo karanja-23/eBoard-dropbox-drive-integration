@@ -5,6 +5,10 @@
         <i class="pi pi-plus"></i>
         <span>Upload</span>
       </div>
+      <div class="upload-btn" (click)="setShowCloudSyncModal()" style="background-color: var(--sibasiWhite); border: 1px solid #0f8bfd">
+        <i class="pi pi-cloud" style="color: #0f8bfd"></i>
+        <span style="color: #0f8bfd">Sync Cloud Files</span>
+      </div>
       <div
         class="upload-btn"
         style="background-color: var(--sibasiWhite); border: 1px solid #0f8bfd"
@@ -23,7 +27,7 @@
       </div>
       <div class="search">
         <i class="pi pi-search"></i>
-        <input type="text" placeholder="Search" />
+        <input type="text" placeholder="Search" [(ngModel)]="mainSearchTerm" (input)="filterDocuments()" />
       </div>
       <div class="sort-view">
         <div
@@ -43,38 +47,13 @@
       </div>
     </div>
   </div>
-  <div class="documents_sync">
-    <div class="sync">
-      <div
-        class="sync-btn"
-        [ngClass]="{ 'sync-active': dropboxSync }"
-        (click)="toggleDropboxSync()"
-      >
-        <i
-          class="{{
-            dropboxSync ? 'pi pi-check-circle' : 'pi pi-times-circle'
-          }}"
-          [ngClass]="{ active: dropboxSync }"
-        ></i>
-        <span [ngClass]="{ active: dropboxSync }">Dropbox Sync</span>
-      </div>
-      <div
-        class="sync-btn"
-        [ngClass]="{ 'sync-active': driveSync }"
-        (click)="toggleDriveSync()"
-      >
-        <i
-          class="{{ driveSync ? 'pi pi-check-circle' : 'pi pi-times-circle' }}"
-          [ngClass]="{ active: driveSync }"
-        ></i>
-        <span [ngClass]="{ active: driveSync }">Google Drive Sync</span>
-      </div>
-    </div>
-  </div>
+  
+  
+  
   <div class="table">
     <div class="card">
       <p-table
-        [value]="dropboxSync ? dropBoxSynced : documents"
+        [value]="filteredDocuments"
         *ngIf="currentView === 'list'"
         [tableStyle]="{ 'min-width': '50rem' }"
         styleClass="white-table"
@@ -85,122 +64,81 @@
         <ng-template #header>
           <tr>
             <th>Name</th>
-            <th>Source</th>
+           
             <th>Size</th>
             <th>Type</th>
             <th></th>
           </tr>
         </ng-template>
-        <ng-template #body let-document >
+        <ng-template #body let-document>
           <tr *ngIf="document.type !== 'Google-apps.folder'">
-            <!--(click)="onDocumentClick(document.id)"-->
             <td class="file-image">
-              <div style="display: flex; align-items: center;">
+              <div style="display: flex; align-items: center">
                 <img
-                *ngIf="
-                  document.type === 'application/pdf' ||
-                  document.type === 'PDF' ||
-                  document.type === 'pdf' ||
-                  document.path_lower?.endsWith('.pdf')
-                "
-                src="assets/pdf.png"
-                class="pdf-icon"
-                alt="PDF Icon"
-              />
-              <img
-                *ngIf="
-                  document.type === 'image/png' ||
-                  document.type === 'image/jpeg' ||
-                  document.type === 'image/jpg' ||
-                  document.path_lower?.endsWith('.png') ||
-                  document.path_lower?.endsWith('.jpg') ||
-                  document.path_lower?.endsWith('.jpeg')
-                "
-                src="assets/photo.png"
-                class="image-icon"
-                alt="Image Icon"
-              />
-              <img
-                *ngIf="
-                  document.type ===
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-                  document.type === 'Google Doc' ||
-                  document.path_lower?.endsWith('.docx')
-                "
-                src="assets/doc.png"
-                class="word-icon"
-                alt="Word Icon"
-              />
-              <img 
-                *ngIf="
-                  document.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-                  document.type === 'Google Sheet'
-                "
-                src="assets/sheets.png"
-                class="sheet-icon"
-                alt="Sheet Icon"
-              />
-              <img 
-                *ngIf="
-                  document.type ==='Word Document' 
-                "
-                src="assets/word.png"
-                class="word-icon"
-
-              />
-              <img 
-                *ngIf="
-                  document.type ==='Google Slides'
-                "
-                src="assets/slides.png"
-                class="slides-icon"
-                
-              />
-              <img 
-                *ngIf="
-                  document.type ==='Video'
+                  *ngIf="
+                    document.type === 'application/pdf' ||
+                    document.type === 'PDF' ||
+                    document.type === 'pdf' ||
+                    document.path_lower?.endsWith('.pdf')
                   "
-                src="assets/reel.png"
-                class="video-icon"
-              />
-              {{ document.name }}
+                  src="assets/pdf.png"
+                  class="pdf-icon"
+                  alt="PDF Icon"
+                />
+                <img
+                  *ngIf="
+                    document.type === 'image/png' ||
+                    document.type === 'image/jpeg' ||
+                    document.type === 'image/jpg' ||
+                    document.path_lower?.endsWith('.png') ||
+                    document.path_lower?.endsWith('.jpg') ||
+                    document.path_lower?.endsWith('.jpeg')
+                  "
+                  src="assets/photo.png"
+                  class="image-icon"
+                  alt="Image Icon"
+                />
+                <img
+                  *ngIf="
+                    document.type ===
+                      'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                    document.type === 'Google Doc' ||
+                    document.path_lower?.endsWith('.docx')||
+                    document.type === 'application/vnd.google-apps.document'
+                  "
+                  src="assets/doc.png"
+                  class="word-icon"
+                  alt="Word Icon"
+                />
+                <img
+                  *ngIf="
+                    document.type ===
+                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                    document.type === 'Google Sheet'
+                  "
+                  src="assets/sheets.png"
+                  class="sheet-icon"
+                  alt="Sheet Icon"
+                />
+                <img
+                  *ngIf="document.type === 'Word Document'"
+                  src="assets/word.png"
+                  class="word-icon"
+                />
+                <img
+                  *ngIf="document.type === 'Google Slides'"
+                  src="assets/slides.png"
+                  class="slides-icon"
+                />
+                <img
+                  *ngIf="document.type === 'Video'"
+                  src="assets/reel.png"
+                  class="video-icon"
+                />
+                {{ document.name }}
               </div>
             </td>
-            <td>
-              <ng-container *ngIf="document.tags?.length; else noTags">
-                <span
-                  *ngFor="let tag of document.tags; let i = index"
-                  class="tag"
-                >
-                  <img
-                    *ngIf="tag === 'drive'"
-                    src="assets/google-drive.png"
-                    class="google"
-                    style="margin-right: 0.25rem"
-                    title="Google drive"
-                  />
-                  <img
-                    *ngIf="tag === 'local'"
-                    src="assets/save.png"
-                    class="desktop"
-                    style="margin-right: 0.25rem"
-                    title="Local"
-                  />
-                  <img
-                    *ngIf="tag === 'dropbox'"
-                    src="assets/dropbox.png"
-                    class="cloud"
-                    style="margin-right: 0.25rem"
-                    title="Dropbox"
-                  />
-
-                  <span *ngIf="i < document.tags.length - 1">, </span>
-                </span>
-              </ng-container>
-              <ng-template #noTags>
-                <span class="tag">none</span>
-              </ng-template>
-            </td>
+            
             <td>{{ document.size / (1024 * 1024) | number : "1.2-2" }} MB</td>
 
             <td>
@@ -223,7 +161,7 @@
                 >
                   <div class="popover-content">
                     <ul>
-                      <li><i class="pi pi-eye"></i> view</li>
+                      <li><i class="pi pi-eye" (click)="openDocument(document)"></i> view</li>
                       <li
                         *ngIf="
                           !document.tags?.includes('dropbox') &&
@@ -243,7 +181,7 @@
                         <i class="pi pi-desktop" style="font-size: 0.8rem"></i>
                         Save from dropbox
                       </li>
-                      <li 
+                      <li
                         *ngIf="
                           !document.tags?.includes('drive') &&
                           document.tags?.includes('local')
@@ -252,7 +190,6 @@
                       >
                         <i class="pi pi-google" style="font-size: 0.8rem"></i>
                         Sync to Google Drive
-
                       </li>
                       <li
                         *ngIf="
@@ -263,6 +200,7 @@
                       >
                         <i class="pi pi-desktop" style="font-size: 0.8rem"></i>
                         Save from Google Drive
+                      </li>
                     </ul>
                   </div>
                 </p-popover>
@@ -275,9 +213,8 @@
     <div class="grid-view" *ngIf="currentView === 'grid'">
       <div
         class="card"
-        *ngFor="let document of dropboxSync ? dropBoxSynced : documents"
+        *ngFor="let document of filteredDocuments"
       >
-        <!--  (click)="onDocumentClick(document.id)"  -->
         <div class="card-header">
           <i class="pi pi-file-pdf"></i> {{ document.name }}
         </div>
@@ -299,6 +236,7 @@
   </div>
 </div>
 
+<!-- Upload Dialog -->
 <p-dialog
   header="New Document"
   [modal]="true"
@@ -325,109 +263,254 @@
     </p-fileupload>
   </div>
 </p-dialog>
-<app-loading
-  *ngIf="isLoading"
-></app-loading>
 
-
-
-
+<!-- Cloud Sync Selection Modal -->
 <ng-container *ngIf="isBrowser">
   <p-dialog
-    header="Select File Sources"
+    header="Sync Cloud Files"
     [modal]="true"
     [blockScroll]="true"
-    [style]="{ width: '32rem' }"
-    [(visible)]="showSelectDocSourceModal"
+    [style]="{ width: '80rem', maxHeight: '90vh' }"
+    [(visible)]="showCloudSyncModal"
     [closable]="true"
-    [styleClass]="'source-selection-modal'"
-    [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+    [styleClass]="'cloud-sync-modal'"
+    [breakpoints]="{ '1199px': '90vw', '575px': '95vw' }"
     [maximizable]="false"
   >
-    <div class="select-source-container">
-      <div class="head">
-        <span>Choose which sources to load documents from</span>
-      </div>
-      
-      <div class="options">
-        <div class="option" 
-             [class.selected]="localSync"
-             (click)="toggleSource('local')">
-          <div class="option-icon">
-            <img src="assets/save.png" alt="Database Files" />
-          </div>
-          <div class="option-content">
-            <p class="option-title">Database Files</p>
-            <p class="option-description">Your documents saved on Ebooard</p>
-          </div>
-          <div class="check-box">
-            <p-checkbox 
-              [(ngModel)]="localSync" 
-              [binary]="true"
-              (click)="$event.stopPropagation()">
-            </p-checkbox>
-          </div>
-        </div>
-
-        <div class="option" 
-             [class.selected]="googleDriveSync"
-             (click)="toggleSource('drive')">
-          <div class="option-icon">
-            <img src="assets/google-drive.png" alt="Google Drive" />
-          </div>
-          <div class="option-content">
-            <p class="option-title">Google Drive</p>
-            <p class="option-description">Google cloud Documents</p>
-          </div>
-          <div class="check-box">
-            <p-checkbox 
-              [(ngModel)]="googleDriveSync" 
-              [binary]="true"
-              (click)="$event.stopPropagation()">
-            </p-checkbox>
-          </div>
-        </div>
-
-        <div class="option" 
-             [class.selected]="dropBoxSync"
-             (click)="toggleSource('dropbox')">
-          <div class="option-icon">
-            <img src="assets/dropbox.png" alt="Dropbox" />
-          </div>
-          <div class="option-content">
-            <p class="option-title">Dropbox</p>
-            <p class="option-description">Dropbox Documents</p>
-          </div>
-          <div class="check-box">
-            <p-checkbox 
-              [(ngModel)]="dropBoxSync" 
-              [binary]="true"
-              (click)="$event.stopPropagation()">
-            </p-checkbox>
-          </div>
-        </div>
+    <div class="cloud-sync-content">
+      <!-- Loading indicator for cloud files -->
+      <div *ngIf="isLoadingCloudFiles" class="loading-container">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+        <p>Loading cloud files...</p>
       </div>
 
-      <div class="modal-footer">
-        <div class="selection-count">
-          <span>{{ getSelectionCount() }} source{{ getSelectionCount() !== 1 ? 's' : '' }} selected</span>
+      <!-- Search and filter controls -->
+      <div *ngIf="!isLoadingCloudFiles" class="cloud-controls">
+        <div class="search-container">
+          <div class="search">
+            <i class="pi pi-search"></i>
+            <input 
+              type="text" 
+              placeholder="Search cloud files..." 
+              [(ngModel)]="cloudSearchTerm" 
+              (input)="filterCloudFiles()" 
+            />
+          </div>
+          <div class="source-filters">
+            <div class="source-checkbox">
+              <p-checkbox 
+                [(ngModel)]="showDropboxFiles" 
+                (onChange)="filterCloudFiles()"
+                binary="true"
+                inputId="dropbox-filter"
+              />
+              <label for="dropbox-filter">Dropbox</label>
+            </div>
+            <div class="source-checkbox">
+              <p-checkbox 
+                [(ngModel)]="showDriveFiles" 
+                (onChange)="filterCloudFiles()"
+                binary="true"
+                inputId="drive-filter"
+              />
+              <label for="drive-filter">Google Drive</label>
+            </div>
+          </div>
         </div>
-        <div class="modal-actions">
+        
+        <!-- Selection summary -->
+        <div class="selection-summary" *ngIf="selectedCloudFiles.length > 0">
+          <span>{{selectedCloudFiles.length}} file(s) selected</span>
           <button 
-            pButton 
-            label="Cancel" 
-            class="p-button-secondary btn-secondary"
-            (click)="cancelSelection()">
+            type="button" 
+            class="clear-selection-btn"
+            (click)="clearCloudSelection()"
+          >
+            Clear Selection
+          </button>
+        </div>
+      </div>
+
+      <!-- Cloud files table -->
+      <div *ngIf="!isLoadingCloudFiles" class="cloud-files-table">
+        <p-table
+          [value]="filteredCloudFiles"
+          [tableStyle]="{ 'min-width': '50rem' }"
+          styleClass="white-table"
+          paginator="false"
+          [rows]="10"
+          [rowsPerPageOptions]="[10, 20, 50]"
+          [(selection)]="selectedCloudFiles"
+          dataKey="uniqueId"
+        >
+          <ng-template #header>
+            <tr>
+              <th style="width: 4rem">
+                <p-tableHeaderCheckbox />
+              </th>
+              <th>Name</th>
+              <th>Source</th>
+              <th>Size</th>
+              <th>Type</th>
+              <th>Status</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-document>
+            <tr *ngIf="document.type !== 'Google-apps.folder' && document.mimeType !== 'application/vnd.google-apps.folder'">
+              <td>
+                <p-tableCheckbox [value]="document" />
+              </td>
+              <td class="file-image">
+                <div style="display: flex; align-items: center">
+                  <img
+                    *ngIf="
+                      document.type === 'application/pdf' ||
+                      document.type === 'PDF' ||
+                      document.type === 'pdf' ||
+                      document.path_lower?.endsWith('.pdf') ||
+                      document.mimeType === 'application/pdf'
+                    "
+                    src="assets/pdf.png"
+                    class="pdf-icon"
+                    alt="PDF Icon"
+                  />
+                  <img
+                    *ngIf="
+                      document.type === 'image/png' ||
+                      document.type === 'image/jpeg' ||
+                      document.type === 'image/jpg' ||
+                      document.path_lower?.endsWith('.png') ||
+                      document.path_lower?.endsWith('.jpg') ||
+                      document.path_lower?.endsWith('.jpeg') ||
+                      document.mimeType?.startsWith('image/')
+                    "
+                    src="assets/photo.png"
+                    class="image-icon"
+                    alt="Image Icon"
+                  />
+                  <img
+                    *ngIf="
+                      document.type ===
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                      document.type === 'Google Doc' ||
+                      document.path_lower?.endsWith('.docx') ||
+                      document.mimeType === 'application/vnd.google-apps.document'
+                    "
+                    src="assets/doc.png"
+                    class="word-icon"
+                    alt="Word Icon"
+                  />
+                  <img
+                    *ngIf="
+                      document.type ===
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                      document.type === 'Google Sheet' ||
+                      document.mimeType === 'application/vnd.google-apps.spreadsheet'
+                    "
+                    src="assets/sheets.png"
+                    class="sheet-icon"
+                    alt="Sheet Icon"
+                  />
+                  <img
+                    *ngIf="document.type === 'Word Document'"
+                    src="assets/word.png"
+                    class="word-icon"
+                  />
+                  <img
+                    *ngIf="document.type === 'Google Slides' || document.mimeType === 'application/vnd.google-apps.presentation'"
+                    src="assets/slides.png"
+                    class="slides-icon"
+                  />
+                  <img
+                    *ngIf="document.type === 'Video' || document.mimeType?.startsWith('video/')"
+                    src="assets/reel.png"
+                    class="video-icon"
+                  />
+                  {{ document.name }}
+                </div>
+              </td>
+              <td>
+                <span class="tag">
+                  <img
+                    *ngIf="document.source === 'drive'"
+                    src="assets/google-drive.png"
+                    class="google"
+                    style="margin-right: 0.25rem"
+                    title="Google Drive"
+                  />
+                  <img
+                    *ngIf="document.source === 'dropbox'"
+                    src="assets/dropbox.png"
+                    class="cloud"
+                    style="margin-right: 0.25rem"
+                    title="Dropbox"
+                  />
+                  {{ document.source === 'drive' ? 'Google Drive' : 'Dropbox' }}
+                </span>
+              </td>
+              <td>{{ (document.size || 0) / (1024 * 1024) | number : "1.2-2" }} MB</td>
+              <td>
+                {{
+                  document.path_lower
+                    ? document.path_lower.split(".").pop()?.toUpperCase()
+                    : document.type?.includes("/")
+                    ? document.type.split("/")[1]?.toUpperCase()
+                    : document.source === 'drive'
+                    ? document.type
+                    : document.type?.toUpperCase() || "Unknown"
+                }}
+              </td>
+              <td>
+                <span 
+                  *ngIf="isDocumentAlreadySynced(document)" 
+                  class="synced-status"
+                  style="color: #22c55e; font-weight: 500;"
+                >
+                  <i class="pi pi-check-circle"></i> Synced
+                </span>
+                <span 
+                  *ngIf="!isDocumentAlreadySynced(document)" 
+                  class="not-synced-status"
+                  style="color: #6b7280;"
+                >
+                  Not synced
+                </span>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Modal footer with actions -->
+      <div class="modal-footer" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <div class="selected-info">
+          <span *ngIf="selectedCloudFiles.length > 0">
+            {{selectedCloudFiles.length}} file(s) selected
+          </span>
+        </div>
+        <div class="action-buttons">
+          <button 
+            type="button" 
+            class="cancel-btn"
+            (click)="cancelCloudSync()"
+            style="margin-right: 1rem; padding: 0.5rem 1rem; border: 1px solid #ccc; background: white; cursor: pointer;"
+          >
+            Cancel
           </button>
           <button 
-            pButton 
-            label="Continue" 
-            class="btn-primary"
-            [disabled]="getSelectionCount() === 0"
-            (click)="confirmSelection()">
+            type="button" 
+            class="sync-btn"
+            (click)="syncSelectedCloudFiles()"
+            [disabled]="selectedCloudFiles.length === 0 || isSyncingFiles"
+            style="padding: 0.5rem 1rem; background: #0f8bfd; color: white; border: none; cursor: pointer; border-radius: 4px;"
+          >
+            <i *ngIf="isSyncingFiles" class="pi pi-spin pi-spinner" style="margin-right: 0.5rem;"></i>
+            {{ isSyncingFiles ? 'Syncing...' : 'Sync Selected Files' }}
           </button>
         </div>
       </div>
     </div>
   </p-dialog>
 </ng-container>
+
+<app-loading *ngIf="isLoading"></app-loading>

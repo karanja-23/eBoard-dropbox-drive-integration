@@ -31,6 +31,18 @@ interface Document {
   tags?: string[];
 }
 
+interface CloudFile {
+  uniqueId: string;
+  name: string;
+  size: number;
+  type: string;
+  mimeType?: string;
+  source: 'dropbox' | 'drive';
+  path_lower?: string;
+  id?: string;
+  [key: string]: any;
+}
+
 @Component({
   selector: 'app-documents',
   imports: [
@@ -46,16 +58,18 @@ interface Document {
     LoadingComponent,
     CheckboxModule
   ],
-  providers: [
-    MessageService], 
+  providers: [MessageService], 
   templateUrl: './documents.component.html',
   styleUrl: './documents.component.css'
 })
 export class DocumentsComponent implements OnInit, AfterViewInit {
   currentView: 'list' | 'grid' = 'list';
   documents: Document[] = [];
+  combinedDocuments: Document[] = [];
+  filteredDocuments: Document[] = [];
   
   showAddDocumentDialog: boolean = false;
+  showCloudSyncModal: boolean = false;
   modalClass: string = 'modal';
   isSubmitting: boolean = false;
   selectedFile: File | null = null;
@@ -64,24 +78,29 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
   dropboxSync: boolean = false;
   driveSync: boolean = false;
 
-  // Document arrays
+  // Cloud document arrays
   dropboxDocuments: any[] = [];
-  dropBoxSynced: any[] = [];
   googleDriveDocuments: any[] = [];
+  allCloudFiles: CloudFile[] = [];
+  filteredCloudFiles: CloudFile[] = [];
 
   // Authentication status
   driveAuthenticated: boolean = false;
 
   // UI state
   isLoading: boolean = true;
-  showSelectDocSourceModal: boolean = false;
-  selectedSource: boolean = false;
+  isLoadingCloudFiles: boolean = false;
+  isSyncingFiles: boolean = false;
   isBrowser: boolean;
 
-  // Modal selection state (separate from sync preferences)
-  localSync: boolean = false;
-  googleDriveSync: boolean = false;
-  dropBoxSync: boolean = false;
+  // Search and filter state
+  mainSearchTerm: string = '';
+  cloudSearchTerm: string = '';
+  showDropboxFiles: boolean = true;
+  showDriveFiles: boolean = true;
+
+  // Cloud file selection
+  selectedCloudFiles: any[] = [];
 
   constructor(
     private documentsService: DocumentsService,
@@ -96,31 +115,227 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
   }
 
   async ngOnInit() {
-    // Don't load anything initially - wait for user selection
-    this.isLoading = false;
+    // Load local files by default
+    await this.loadLocalDocuments();
     
     // Check authentication status for cloud services
     await this.checkAuthenticationStatus();
+    
+    this.isLoading = false;
   }
 
   ngAfterViewInit() {
-    // Show source selection modal if no source has been selected
-    if (this.isBrowser && !this.selectedSource) {
-      setTimeout(() => {
-        this.showSelectDocSourceModal = true;
-      }, 100);
+    // No automatic modal showing - user clicks "Sync Cloud Files" button
+  }
+
+  private async loadLocalDocuments(): Promise<void> {
+    try {
+      console.log('Loading local documents...');
+      await this.getUser(1);
+      this.combinedDocuments = [...this.documents];
+      this.filterDocuments();
+      console.log(`Loaded ${this.documents.length} local documents`);
+    } catch (error) {
+      console.error('Error loading local documents:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load local documents'
+      });
     }
   }
 
-  // Add method to check authentication status
+  async setShowCloudSyncModal(): Promise<void> {
+    this.showCloudSyncModal = true;
+    this.isLoadingCloudFiles = true;
+    this.selectedCloudFiles = [];
+    
+    try {
+      // Load cloud files
+      await this.loadCloudFiles();
+      this.filterCloudFiles();
+    } catch (error) {
+      console.error('Error loading cloud files:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load cloud files'
+      });
+    } finally {
+      this.isLoadingCloudFiles = false;
+    }
+  }
+
+  private async loadCloudFiles(): Promise<void> {
+    const loadingPromises = [];
+
+    // Load Dropbox files
+    if (this.dropboxService) {
+      loadingPromises.push(this.getDropboxDocuments());
+    }
+
+    // Load Google Drive files
+    if (this.driveAuthenticated) {
+      loadingPromises.push(this.getDriveDocuments());
+    }
+
+    await Promise.allSettled(loadingPromises);
+    
+    // Combine all cloud files with unique IDs
+    this.allCloudFiles = [
+      ...this.dropboxDocuments.map((doc, index) => ({
+        ...doc,
+        uniqueId: `dropbox_${index}_${doc.name}_${doc.size}`,
+        source: 'dropbox' as const,
+        type: this.getDropboxFileType(doc)
+      })),
+      ...this.googleDriveDocuments.map((doc, index) => ({
+        ...doc,
+        uniqueId: `drive_${index}_${doc.id}`,
+        source: 'drive' as const,
+        type: this.getDriveFileType(doc)
+      }))
+    ];
+
+    console.log(`Loaded ${this.allCloudFiles.length} total cloud files`);
+  }
+
+  filterCloudFiles(): void {
+    let filtered = this.allCloudFiles;
+
+    // Filter by source
+    filtered = filtered.filter(file => {
+      if (!this.showDropboxFiles && file.source === 'dropbox') return false;
+      if (!this.showDriveFiles && file.source === 'drive') return false;
+      return true;
+    });
+
+    // Filter by search term
+    if (this.cloudSearchTerm.trim()) {
+      const searchLower = this.cloudSearchTerm.toLowerCase();
+      filtered = filtered.filter(file => 
+        file.name.toLowerCase().includes(searchLower) ||
+        file.type.toLowerCase().includes(searchLower)
+      );
+    }
+
+    this.filteredCloudFiles = filtered;
+  }
+
+  filterDocuments(): void {
+    if (!this.mainSearchTerm.trim()) {
+      this.filteredDocuments = [...this.combinedDocuments];
+      return;
+    }
+
+    const searchLower = this.mainSearchTerm.toLowerCase();
+    this.filteredDocuments = this.combinedDocuments.filter(doc => 
+      doc.name.toLowerCase().includes(searchLower) ||
+      doc.type.toLowerCase().includes(searchLower) ||
+      (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(searchLower)))
+    );
+  }
+
+  clearCloudSelection(): void {
+    this.selectedCloudFiles = [];
+  }
+
+  cancelCloudSync(): void {
+    this.showCloudSyncModal = false;
+    this.selectedCloudFiles = [];
+    this.cloudSearchTerm = '';
+    this.showDropboxFiles = true;
+    this.showDriveFiles = true;
+  }
+
+  async syncSelectedCloudFiles(): Promise<void> {
+    if (this.selectedCloudFiles.length === 0) return;
+
+    this.isSyncingFiles = true;
+    let successCount = 0;
+    let errorCount = 0;
+
+    try {
+      for (const file of this.selectedCloudFiles) {
+        try {
+          if (file.source === 'dropbox') {
+            await this.downloadToLocal(file as any);
+          } else if (file.source === 'drive') {
+            await this.downloadToLocalFromDrive(file.id);
+          }
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to sync file ${file.name}:`, error);
+          errorCount++;
+        }
+      }
+
+      // Show summary message
+      if (successCount > 0) {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sync Complete',
+          detail: `Successfully synced ${successCount} file(s)${errorCount > 0 ? `, ${errorCount} failed` : ''}`
+        });
+      }
+
+      if (errorCount > 0 && successCount === 0) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Sync Failed',
+          detail: `Failed to sync ${errorCount} file(s)`
+        });
+      }
+
+      // Refresh documents and close modal
+      await this.loadLocalDocuments();
+      this.showCloudSyncModal = false;
+      this.selectedCloudFiles = [];
+
+    } catch (error) {
+      console.error('Error during batch sync:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Sync Error',
+        detail: 'An error occurred during file synchronization'
+      });
+    } finally {
+      this.isSyncingFiles = false;
+    }
+  }
+
+  isDocumentAlreadySynced(cloudFile: CloudFile): boolean {
+    const normalizedCloudName = this.normalizeFileName(cloudFile.name);
+    const cloudSize = this.normalizeSize(cloudFile.size);
+
+    return this.documents.some(localDoc => {
+      const normalizedLocalName = this.normalizeFileName(localDoc.name);
+      const localSize = this.normalizeSize(localDoc.size);
+      
+      return normalizedLocalName === normalizedCloudName && 
+             Math.abs(localSize - cloudSize) < 1024; // Allow small size differences
+    });
+  }
+
+  private normalizeFileName(fileName: string): string {
+    return fileName
+      .toLowerCase()
+      .replace(/[<>:"|?*\\\/\s]/g, '_')
+      .replace(/_{2,}/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .trim();
+  }
+
+  private normalizeSize(size: any): number {
+    if (typeof size === 'string') {
+      return parseInt(size) || 0;
+    }
+    return size || 0;
+  }
+
   private async checkAuthenticationStatus(): Promise<void> {
     try {
-      // Check Google Drive authentication
       this.driveAuthenticated = this.driveService.isAuthenticated;
-      
-      // You might want to check Dropbox authentication as well
-      // this.dropboxAuthenticated = await this.dropboxService.isAuthenticated();
-      
       console.log('Authentication status:', {
         googleDrive: this.driveAuthenticated
       });
@@ -129,52 +344,19 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // Modal interaction methods
-  toggleSource(source: string): void {
-    switch(source) {
-      case 'local':
-        this.localSync = !this.localSync;
-        break;
-      case 'drive':
-        this.googleDriveSync = !this.googleDriveSync;
-        break;
-      case 'dropbox':
-        this.dropBoxSync = !this.dropBoxSync;
-        break;
-    }
-  }
-
-  getSelectionCount(): number {
-    return [this.localSync, this.googleDriveSync, this.dropBoxSync].filter(sync => sync).length;
-  }
-
-  cancelSelection(): void {
-    this.showSelectDocSourceModal = false;
-    // Reset selections
-    this.localSync = false;
-    this.googleDriveSync = false;
-    this.dropBoxSync = false;
-  }
-
-  async confirmSelection(): Promise<void> {
-    if (this.getSelectionCount() > 0) {
-      this.selectedSource = true;
-      this.showSelectDocSourceModal = false;
-      
-      // Load documents based on selection
-      await this.loadSelectedSources();
-    }
+  setView(view: 'list' | 'grid') {
+    this.currentView = view;
   }
 
   onFileUpload(event: any) {
     const file = event.files[0];
     const formData = new FormData();
     formData.append('name', file.name);
-    formData.append('user_id', '1'); // to replace with actual user ID
+    formData.append('user_id', '1');
     formData.append('document', file);
     formData.append('type', file.type);
     formData.append('size', file.size.toString()); 
-    formData.append('folder_id', '1'); // Replace with actual folder ID if needed
+    formData.append('folder_id', '1');
     
     this.downloadDocument(formData);
     this.selectedFile = null; 
@@ -187,402 +369,52 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
-        detail: 'Document saved locally from Dropbox'
+        detail: 'Document uploaded successfully'
       });
 
-      // Refresh data to show the document now has both 'dropbox' and 'local' tags
-      await this.getUser(1);
-      await this.getDropboxDocuments();
-      await this.updateCombinedDocuments();
-
-      console.log('✅ Document saved locally and UI refreshed');
+      await this.loadLocalDocuments();
 
     } catch (error: any) {
-      console.error('❌ Error saving document:', error);
+      console.error('Error saving document:', error);
       this.messageService.add({
         severity: 'error',
-        summary: 'Save Failed',
-        detail: 'Failed to save document to local database'
+        summary: 'Upload Failed',
+        detail: 'Failed to upload document'
       });
     }
-  }
-
-  private async loadSelectedSources(): Promise<void> {
-  this.isLoading = true;
-  
-  // CRITICAL: Clear all existing data first
-  this.documents = [];
-  this.dropboxDocuments = [];
-  this.googleDriveDocuments = [];
-  this.dropBoxSynced = [];
-  
-  console.log('=== STARTING FRESH LOAD ===');
-  console.log('Selected sources:', {
-    local: this.localSync,
-    dropbox: this.dropBoxSync,
-    googleDrive: this.googleDriveSync
-  });
-  
-  try {
-    const loadingResults = {
-      local: false,
-      dropbox: false,
-      googleDrive: false
-    };
-
-    // Load Local Documents
-    if (this.localSync) {
-      console.log('🔄 Loading local documents...');
-      try {
-        await this.getUser(1);
-        loadingResults.local = true;
-        console.log(`✅ Local: Loaded ${this.documents.length} documents`);
-      } catch (error) {
-        console.error('❌ Local loading failed:', error);
-        this.documents = [];
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Local Loading Failed',
-          detail: 'Could not load local documents'
-        });
-      }
-    } else {
-      console.log('⏭️ Local documents skipped');
-    }
-
-    // Load Dropbox Documents
-    if (this.dropBoxSync) {
-      console.log('🔄 Loading Dropbox documents...');
-      try {
-        await this.getDropboxDocuments();
-        loadingResults.dropbox = true;
-        console.log(`✅ Dropbox: Loaded ${this.dropboxDocuments.length} documents`);
-      } catch (error) {
-        console.error('❌ Dropbox loading failed:', error);
-        this.dropboxDocuments = [];
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Dropbox Loading Failed',
-          detail: 'Could not load Dropbox documents'
-        });
-      }
-    } else {
-      console.log('⏭️ Dropbox documents skipped');
-    }
-
-    // Load Google Drive Documents
-    if (this.googleDriveSync) {
-      console.log('🔄 Loading Google Drive documents...');
-      if (!this.driveAuthenticated) {
-        console.warn('❌ Google Drive not authenticated');
-        this.googleDriveDocuments = [];
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Authentication Required',
-          detail: 'Please authenticate with Google Drive first'
-        });
-      } else {
-        try {
-          await this.getDriveDocuments();
-          loadingResults.googleDrive = true;
-          console.log(`✅ Google Drive: Loaded ${this.googleDriveDocuments.length} documents`);
-        } catch (error) {
-          console.error('❌ Google Drive loading failed:', error);
-          this.googleDriveDocuments = [];
-          this.messageService.add({
-            severity: 'warn',
-            summary: 'Google Drive Loading Failed',
-            detail: 'Could not load Google Drive documents'
-          });
-        }
-      }
-    } else {
-      console.log('⏭️ Google Drive documents skipped');
-    }
-
-    // Log final arrays before combining
-    console.log('=== BEFORE COMBINING ===');
-    console.log('Local documents:', this.documents.length);
-    console.log('Dropbox documents:', this.dropboxDocuments.length);
-    console.log('Google Drive documents:', this.googleDriveDocuments.length);
-
-    // ALWAYS call updateCombinedDocuments, even with empty arrays
-    await this.updateCombinedDocuments();
-
-    console.log('=== FINAL RESULT ===');
-    console.log('Combined documents:', this.dropBoxSynced.length);
-    console.log('Loading results:', loadingResults);
-
-    // Show success message
-    const successfulSources = Object.entries(loadingResults)
-      .filter(([_, success]) => success)
-      .map(([source, _]) => source);
-    
-    if (successfulSources.length > 0) {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Sources Loaded',
-        detail: `Successfully loaded: ${successfulSources.join(', ')}`
-      });
-    }
-
-  } catch (error) {
-    console.error('❌ Critical error in loadSelectedSources:', error);
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Loading Error',
-      detail: 'Failed to load document sources'
-    });
-  } finally {
-    this.isLoading = false;
-    console.log('=== LOADING COMPLETE ===');
-  }
-}
-
-
-  // Method to manually refresh sources
-  async refreshSources(): Promise<void> {
-    if (!this.selectedSource) return;
-    
-    this.isLoading = true;
-    await this.loadSelectedSources();
-  }
-
-  setView(view: 'list' | 'grid') {
-    this.currentView = view;
-  }
-
-  async updateCombinedDocuments(): Promise<void> {
-    const dropboxDocs = this.dropboxDocuments || [];
-    const localDocs = this.documents || [];
-    const driveDocs = this.googleDriveDocuments || [];
-
-    console.log('Input documents:', {
-      local: localDocs.length,
-      dropbox: dropboxDocs.length,
-      drive: driveDocs.length
-    });
-
-    // Create a map for quick lookup by name and size
-    const docMap = new Map<string, any>();
-
-    // Helper function to normalize size (Google Drive returns size as string)
-    const normalizeSize = (size: any): number => {
-      if (typeof size === 'string') {
-        return parseInt(size) || 0;
-      }
-      return size || 0;
-    };
-
-    // Helper function to normalize filename for comparison
-    const normalizeFileName = (name: string): string => {
-      return name
-        .toLowerCase()
-        .replace(/[<>:"|?*\\\/\s]/g, '_') // Same normalization as sanitizeFileName
-        .replace(/_{2,}/g, '_') // Replace multiple underscores with single
-        .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
-        .trim();
-    };
-
-    // Helper function to generate consistent key using normalized name
-    const generateKey = (doc: any): string => {
-      const rawName = doc.name || doc.title || doc.filename || 'unknown';
-      const normalizedName = normalizeFileName(rawName);
-      const size = normalizeSize(doc.size || doc.bytes);
-      return `${normalizedName}_${size}`;
-    };
-
-    // Helper function to get the best display name (prefer original over sanitized)
-    const getBestDisplayName = (existingDoc: any, newDoc: any): string => {
-      const existingName = existingDoc.name || existingDoc.title || existingDoc.filename;
-      const newName = newDoc.name || newDoc.title || newDoc.filename;
-      
-      // Prefer names with spaces over underscores (original vs sanitized)
-      if (existingName?.includes(' ') && newName?.includes('_')) {
-        return existingName;
-      }
-      if (newName?.includes(' ') && existingName?.includes('_')) {
-        return newName;
-      }
-      
-      // Otherwise, keep the existing name
-      return existingName || newName;
-    };
-
-    // Add local docs first (only if selected)
-    if (this.localSync) {
-      localDocs.forEach(doc => {
-        const key = generateKey(doc);
-        doc.tags = ['local'];
-        docMap.set(key, doc);
-      });
-    }
-
-    // Add dropbox docs (only if selected), merge tags if already present
-    if (this.dropBoxSync) {
-      dropboxDocs.forEach(doc => {
-        const key = generateKey(doc);
-        console.log(`Processing Dropbox doc: ${doc.name} - normalized key: ${key}`);
-        
-        if (docMap.has(key)) {
-          // Merge tags and preserve best display name
-          const existingDoc = docMap.get(key);
-          if (!existingDoc.tags.includes('dropbox')) {
-            existingDoc.tags.push('dropbox');
-          }
-          // Update display name if the new one is better
-          existingDoc.name = getBestDisplayName(existingDoc, doc);
-          console.log(`Merged Dropbox doc with existing - tags: ${existingDoc.tags}, name: ${existingDoc.name}`);
-        } else {
-          doc.tags = ['dropbox'];
-          docMap.set(key, doc);
-          console.log(`Added new Dropbox doc`);
-        }
-      });
-    }
-
-    // Add Google Drive docs (only if selected), merge tags if already present
-    if (this.googleDriveSync) {
-      driveDocs.forEach(doc => {
-        const key = generateKey(doc);
-        console.log(`Processing Drive doc: ${doc.name} (${doc.size} bytes) - normalized key: ${key}`);
-        
-        if (docMap.has(key)) {
-          // Merge tags and preserve best display name
-          const existingDoc = docMap.get(key);
-          if (!existingDoc.tags.includes('drive')) {
-            existingDoc.tags.push('drive');
-          }
-          // Update display name if the new one is better
-          existingDoc.name = getBestDisplayName(existingDoc, doc);
-          console.log(`Merged Drive doc with existing - tags: ${existingDoc.tags}, name: ${existingDoc.name}`);
-        } else {
-          doc.tags = ['drive'];
-          docMap.set(key, doc);
-          console.log(`Added new Drive doc`);
-        }
-      });
-    }
-
-    // Set the combined array and sort by name
-    this.dropBoxSynced = this.sortDocumentsByName(Array.from(docMap.values()));
-    
-    // Enhanced logging
-    const tagStats = {
-      local: 0,
-      dropbox: 0,
-      drive: 0,
-      localOnly: 0,
-      dropboxOnly: 0,
-      driveOnly: 0,
-      multiple: 0
-    };
-
-    this.dropBoxSynced.forEach(doc => {
-      if (doc.tags.includes('local')) tagStats.local++;
-      if (doc.tags.includes('dropbox')) tagStats.dropbox++;
-      if (doc.tags.includes('drive')) tagStats.drive++;
-      
-      if (doc.tags.length === 1) {
-        if (doc.tags[0] === 'local') tagStats.localOnly++;
-        else if (doc.tags[0] === 'dropbox') tagStats.dropboxOnly++;
-        else if (doc.tags[0] === 'drive') tagStats.driveOnly++;
-      } else {
-        tagStats.multiple++;
-      }
-    });
-
-    console.log('Document merge statistics:', tagStats);
-    console.log('Total combined documents:', this.dropBoxSynced.length);
-
-    // Show sample of merged documents for verification
-    const multiTaggedDocs = this.dropBoxSynced.filter(doc => doc.tags.length > 1);
-    console.log(`Multi-tagged documents (${multiTaggedDocs.length}):`, 
-      multiTaggedDocs.slice(0, 5).map(doc => ({
-        name: doc.name,
-        size: this.normalizeSize(doc.size),
-        tags: doc.tags,
-        mimeType: doc.mimeType
-      }))
-    );
-  }
-
-  private sortDocumentsByName(documents: any[]): any[] {
-    return documents.sort((a, b) => {
-      const nameA = (a.name || a.title || '').toLowerCase();
-      const nameB = (b.name || b.title || '').toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
-  }
-
-  // Helper method to normalize size
-  private normalizeSize(size: any): number {
-    if (typeof size === 'string') {
-      return parseInt(size) || 0;
-    }
-    return size || 0;
   }
 
   async getDriveDocuments(): Promise<void> {
     try {
       if (!this.driveService.isAuthenticated) {
-        console.error('Not authenticated with Google Drive');
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Authentication Required',
-          detail: 'Please authenticate with Google Drive first'
-        });
+        console.warn('Not authenticated with Google Drive');
         return;
       }
 
-      console.log('Starting to load Google Drive files...');
-
+      console.log('Loading Google Drive files...');
       const result = await this.driveService.listAllFiles({
         progressCallback: (current: number) => {
           console.log(`Progress: ${current} files loaded`);
         }
       });
 
-      // Process each document to add normalized properties including type
-      this.googleDriveDocuments = result.files.map((doc: any) => {
-        return {
-          ...doc,
-          // Add the type property using your existing method
-          type: this.getDriveFileType(doc),
-          // Add normalized size
-          size: this.normalizeSize(doc.size),
-          // Add source identifier
-          source: 'drive'
-        };
-      });
+      this.googleDriveDocuments = result.files.map((doc: any) => ({
+        ...doc,
+        type: this.getDriveFileType(doc),
+        size: this.normalizeSize(doc.size),
+        source: 'drive'
+      }));
       
-      console.log(`Successfully loaded ${this.googleDriveDocuments.length} files`);
-      console.log('Sample Drive files with types:', 
-        this.googleDriveDocuments.slice(0, 5).map(f => ({
-          name: f.name,
-          type: f.type,
-          mimeType: f.mimeType,
-          size: f.size,
-          id: f.id
-        }))
-      );
+      console.log(`Successfully loaded ${this.googleDriveDocuments.length} Google Drive files`);
       
-      console.log('Google Drive documents loaded successfully');
-
     } catch (error) {
-      console.error('Failed to list all files:', error);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to load Google Drive documents'
-      });
+      console.error('Failed to load Google Drive files:', error);
+      this.googleDriveDocuments = [];
     }
   }
 
   private getDriveFileType(document: any): string {
-    // Handle different ways files store type information
     if (document.mimeType) {
-      // Google Drive uses mimeType - return user-friendly names
       if (document.mimeType === 'application/vnd.google-apps.document') return 'Google Doc';
       if (document.mimeType === 'application/vnd.google-apps.spreadsheet') return 'Google Sheet';
       if (document.mimeType === 'application/vnd.google-apps.presentation') return 'Google Slides';
@@ -594,45 +426,29 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       if (document.mimeType.startsWith('video/')) return 'Video';
       if (document.mimeType.startsWith('audio/')) return 'Audio';
       
-      // For other MIME types, extract the subtype and make it readable
       const parts = document.mimeType.split('/');
       if (parts.length > 1) {
         const subtype = parts[1];
-        // Convert common subtypes to readable names
         if (subtype.includes('word')) return 'Word Document';
         if (subtype.includes('excel') || subtype.includes('spreadsheet')) return 'Excel';
         if (subtype.includes('powerpoint') || subtype.includes('presentation')) return 'PowerPoint';
         if (subtype.includes('zip')) return 'ZIP Archive';
         
-        // Capitalize first letter and remove technical prefixes
         return subtype.replace(/^(vnd\.|x-|ms-)/, '').replace(/^\w/, (c: string) => c.toUpperCase());
       }
       
       return document.mimeType;
     }
     
+    return 'Unknown';
+  }
+
+  private getDropboxFileType(document: any): string {
     if (document.path_lower) {
-      // Dropbox uses path_lower, extract extension
       const extension = document.path_lower.split('.').pop()?.toLowerCase();
       return extension ? extension.toUpperCase() : 'Unknown';
     }
-    
-    if (document.type) {
-      // Local files use 'type' - convert MIME type to readable format
-      if (document.type.startsWith('application/pdf')) return 'PDF';
-      if (document.type.startsWith('text/')) return 'Text';
-      if (document.type.startsWith('image/')) return 'Image';
-      if (document.type.startsWith('video/')) return 'Video';
-      if (document.type.startsWith('audio/')) return 'Audio';
-      
-      const parts = document.type.split('/');
-      return parts.length > 1 ? parts[1].toUpperCase() : 'Unknown';
-    }
-    
-    // Fallback: try to get from filename extension
-    const name = document.name || '';
-    const extension = name.split('.').pop()?.toLowerCase();
-    return extension ? extension.toUpperCase() : 'Unknown';
+    return 'Unknown';
   }
 
   onDocumentClick(documentId: number) {
@@ -646,12 +462,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       console.log('Dropbox documents loaded:', this.dropboxDocuments.length);
     } catch (error) {
       console.error('Error fetching Dropbox documents:', error);
-      this.dropboxDocuments = []; // Set to empty array on error
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to fetch Dropbox documents'
-      });
+      this.dropboxDocuments = [];
     }
   }
 
@@ -659,15 +470,12 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
     try {
       console.log('Fetching user data...');
       const user = await this.documentsService.getUser(userId);
-      console.log('User data loaded:', user);
       
       this.documents = user.documents || [];
       this.dropboxSync = user.dropbox_sync || false;
       this.driveSync = user.drive_sync || false;
       
       console.log('Local documents loaded:', this.documents.length);
-      console.log('Dropbox sync enabled:', this.dropboxSync);
-      console.log('Drive sync enabled:', this.driveSync);
       
       return user;
     } catch (error) {
@@ -682,8 +490,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       const file = await this.driveService.getDocumentFile(documentId);
       console.log(file);
       
-      // Convert base64 to Blob
-      const base64Data = file.base64Content.replace(/^data:[^;]+;base64,/, ''); // Remove data URI prefix if present
+      const base64Data = file.base64Content.replace(/^data:[^;]+;base64,/, '');
       const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length);
       
@@ -696,30 +503,21 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       
       const formData = new FormData();
       formData.append('name', file.metadata.name);
-      formData.append('user_id', '1'); // Replace with actual user ID
-      formData.append('document', blob, file.metadata.name); // Pass blob with filename
+      formData.append('user_id', '1');
+      formData.append('document', blob, file.metadata.name);
       formData.append('type', file.metadata.mimeType);
       formData.append('size', file.metadata.size.toString());
-      formData.append('folder_id', '1'); // Replace with actual folder ID if needed
+      formData.append('folder_id', '1');
       
-      console.log('FormData entries:');
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-      
-      const response = await this.documentsService.addDocument(formData);
-      console.log(response);
+      await this.documentsService.addDocument(formData);
       
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
-        detail: `Document "${file.metadata.name}" synced to your documents successfully`
+        detail: `Document "${file.metadata.name}" synced successfully`
       });
 
-      // Refresh data
-      await this.getDriveDocuments();
-      await this.getUser(1);
-      await this.updateCombinedDocuments();
+      await this.loadLocalDocuments();
       
     } catch (error: any) {
       console.error('Error downloading document:', error);
@@ -734,7 +532,6 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
   async syncToGoogleDrive(document: any): Promise<void> {
     try {
       if (!this.driveSync) {
-        console.log('Google Drive sync is not enabled');
         this.messageService.add({
           severity: 'warn',
           summary: 'Warning', 
@@ -742,6 +539,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
         });
         return;
       }
+
       console.log('Syncing document to Google Drive:', document);
       if (!document?.document) {
         throw new Error('Document content is missing');
@@ -752,15 +550,12 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       let fileBlob: Blob;
       
       if (document.document.includes('base64,')) {
-        // Data URL format
         const base64Data = document.document.split('base64,')[1];
         fileBlob = this.base64ToBlob(base64Data, document.type);
       } else if (document.document.startsWith('data:')) {
-        // Other data URL format
         const response = await fetch(document.document);
         fileBlob = await response.blob();
       } else {
-        // Raw base64
         fileBlob = this.base64ToBlob(document.document, document.type);
       }
 
@@ -768,23 +563,19 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
         throw new Error('Failed to create valid file from document content');
       }
 
-      // Create File object from blob
       const file = new File([fileBlob], cleanFileName, { 
         type: document.type || 'application/octet-stream' 
       });
 
-      // Upload to Google Drive
-      const response = await this.driveService.uploadFile(file, cleanFileName);
-      console.log('Google Drive upload response:', response);
+      await this.driveService.uploadFile(file, cleanFileName);
+      
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
         detail: `Document "${cleanFileName}" synced to Google Drive successfully`
       });
 
-      // Refresh data
-      await this.getDriveDocuments();
-      await this.updateCombinedDocuments();
+      await this.loadLocalDocuments();
 
     } catch (error: any) {
       console.error('Google Drive sync failed:', error.message || error);
@@ -822,19 +613,16 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
   }
 
   private sanitizeFileName(fileName: string): string {
-    // Remove or replace characters that Dropbox doesn't allow
     let cleaned = fileName
-      .replace(/[<>:"|?*]/g, '_') // Replace invalid characters with underscore
-      .replace(/\s+/g, '_') // Replace spaces with underscores
-      .replace(/_{2,}/g, '_') // Replace multiple underscores with single
+      .replace(/[<>:"|?*]/g, '_')
+      .replace(/\s+/g, '_')
+      .replace(/_{2,}/g, '_')
       .trim();
 
-    // Ensure file has an extension
     if (!cleaned.includes('.')) {
-      cleaned += '.pdf'; // Default to PDF if no extension
+      cleaned += '.pdf';
     }
 
-    // Limit length (Dropbox has a 255 character limit)
     if (cleaned.length > 255) {
       const ext = cleaned.substring(cleaned.lastIndexOf('.'));
       cleaned = cleaned.substring(0, 255 - ext.length) + ext;
@@ -845,12 +633,10 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
 
   async downloadToLocal(document: Document): Promise<void> {
     try {
-      // Validate document data
       if (!document.path_lower) {
         throw new Error('Document path is missing');
       }
 
-      // Try SDK method first, fallback to direct API
       let fileBlob: Blob;
       try {
         fileBlob = await this.dropboxService.downloadFile(document.path_lower);
@@ -858,33 +644,22 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
         fileBlob = await this.dropboxService.downloadFileDirectAPI(document.path_lower);
       }
       
-      if (!fileBlob) {
-        throw new Error('No file data received');
-      }
-
-      if (fileBlob.size === 0) {
+      if (!fileBlob || fileBlob.size === 0) {
         throw new Error('Downloaded file is empty');
       }
 
-      // Create FormData for local storage
       const formData = new FormData();
       formData.append('name', document.name);
-      formData.append('user_id', '1'); // Replace with actual user ID
+      formData.append('user_id', '1');
       
-      // Determine the correct MIME type
       const mimeType = this.getFileType(document.name);
-      
-      // Create File object from the downloaded blob
-      const file = new File([fileBlob], document.name, { 
-        type: mimeType 
-      });
+      const file = new File([fileBlob], document.name, { type: mimeType });
       
       formData.append('document', file);
       formData.append('type', mimeType);
       formData.append('size', fileBlob.size.toString());
       formData.append('description', `Downloaded from Dropbox: ${document.name}`);
 
-      // Save to local database
       await this.downloadDocument(formData);
 
     } catch (error: any) {
@@ -892,7 +667,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       
       if (error.message === 'Not authenticated') {
         errorMessage = 'Please reconnect to Dropbox';
-      } else if (error.message.includes('not found') || error.message.includes('path/not_found')) {
+      } else if (error.message.includes('not found')) {
         errorMessage = 'File not found in Dropbox';
       } else if (error.message.includes('empty')) {
         errorMessage = 'The file appears to be empty or corrupted';
@@ -905,6 +680,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
         summary: 'Download Failed',
         detail: errorMessage
       });
+      throw error; // Re-throw for batch sync error handling
     }
   }
 
@@ -912,7 +688,6 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
     const extension = filename.split('.').pop()?.toLowerCase();
     
     const mimeTypes: { [key: string]: string } = {
-      // Documents
       'pdf': 'application/pdf',
       'doc': 'application/msword',
       'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -923,8 +698,6 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       'txt': 'text/plain',
       'rtf': 'application/rtf',
       'csv': 'text/csv',
-      
-      // Images
       'jpg': 'image/jpeg',
       'jpeg': 'image/jpeg',
       'png': 'image/png',
@@ -932,13 +705,9 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       'bmp': 'image/bmp',
       'tiff': 'image/tiff',
       'svg': 'image/svg+xml',
-      
-      // Archives
       'zip': 'application/zip',
       'rar': 'application/x-rar-compressed',
       '7z': 'application/x-7z-compressed',
-      
-      // Others
       'json': 'application/json',
       'xml': 'text/xml',
       'html': 'text/html',
@@ -963,6 +732,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       if (!document?.document) {
         throw new Error('Document content is missing');
       }
+
       console.log('Syncing document to Dropbox:', document);
       const cleanFileName = this.sanitizeFileName(document.name);
       const dropboxPath = `/${cleanFileName}`;
@@ -970,15 +740,12 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       let fileBlob: Blob;
       
       if (document.document.includes('base64,')) {
-        // Data URL format
         const base64Data = document.document.split('base64,')[1];
         fileBlob = this.base64ToBlob(base64Data, document.type);
       } else if (document.document.startsWith('data:')) {
-        // Other data URL format
         const response = await fetch(document.document);
         fileBlob = await response.blob();
       } else {
-        // Raw base64
         fileBlob = this.base64ToBlob(document.document, document.type);
       }
 
@@ -994,9 +761,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
         detail: `Document "${cleanFileName}" synced to Dropbox successfully`
       });
 
-      // Refresh data
-      await this.getDropboxDocuments();
-      await this.updateCombinedDocuments();
+      await this.loadLocalDocuments();
 
     } catch (error: any) {
       console.error('Dropbox sync failed:', error.message || error);
@@ -1011,25 +776,13 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
 
   toggleDriveSync() {
     this.driveSync = !this.driveSync;
-    // Add actual sync logic here
-  }
-
-  async setTags(docs: any[]) {
-    docs.forEach((doc: any) => {
-      if ('client_modified' in doc) {
-        doc.tags = ['dropbox'];
-      }
-      else if ('date_created' in doc) {
-        doc.tags = ['local'];
-      }
-      else {
-        doc.tags = [];
-      }
-    });
   }
 
   toggleDropboxSync() {
     this.dropboxSync = !this.dropboxSync;
-    // Add actual sync logic here
   }
+  openDocument(doc: any) {
+  console.log(doc)
+  }
+  
 }
