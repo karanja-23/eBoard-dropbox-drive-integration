@@ -278,13 +278,13 @@
     [maximizable]="false"
   >
     <div class="cloud-sync-content">
-      <!-- Loading indicator for cloud files -->
+      
       <div *ngIf="isLoadingCloudFiles" class="loading-container">
         <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
         <p>Loading cloud files...</p>
       </div>
 
-      <!-- Search and filter controls -->
+      
       <div *ngIf="!isLoadingCloudFiles" class="cloud-controls">
         <div class="search-container">
           <div class="search">
@@ -318,7 +318,7 @@
           </div>
         </div>
         
-        <!-- Selection summary -->
+        
         <div class="selection-summary" *ngIf="selectedCloudFiles.length > 0">
           <span>{{selectedCloudFiles.length}} file(s) selected</span>
           <button 
@@ -331,7 +331,7 @@
         </div>
       </div>
 
-      <!-- Cloud files table -->
+      
       <div *ngIf="!isLoadingCloudFiles" class="cloud-files-table">
         <p-table
           [value]="filteredCloudFiles"
@@ -481,7 +481,7 @@
         </p-table>
       </div>
 
-      <!-- Modal footer with actions -->
+      
       <div class="modal-footer" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
         <div class="selected-info">
           <span *ngIf="selectedCloudFiles.length > 0">
