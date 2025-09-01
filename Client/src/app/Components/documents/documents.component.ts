@@ -62,7 +62,7 @@ interface CloudFile {
   templateUrl: './documents.component.html',
   styleUrl: './documents.component.css'
 })
-export class DocumentsComponent implements OnInit, AfterViewInit {
+export class DocumentsComponent implements OnInit {
   currentView: 'list' | 'grid' = 'list';
   documents: Document[] = [];
   combinedDocuments: Document[] = [];
@@ -124,19 +124,17 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
     this.isLoading = false;
   }
 
-  ngAfterViewInit() {
-    // No automatic modal showing - user clicks "Sync Cloud Files" button
-  }
+
 
   private async loadLocalDocuments(): Promise<void> {
     try {
-      console.log('Loading local documents...');
+      
       await this.getUser(1);
       this.combinedDocuments = [...this.documents];
       this.filterDocuments();
-      console.log(`Loaded ${this.documents.length} local documents`);
+      
     } catch (error) {
-      console.error('Error loading local documents:', error);
+      
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -146,8 +144,8 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
   }
 
   async setShowCloudSyncModal(): Promise<void> {
-    this.showCloudSyncModal = true;
     this.isLoadingCloudFiles = true;
+    this.showCloudSyncModal = true;
     this.selectedCloudFiles = [];
     
     try {
@@ -155,7 +153,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       await this.loadCloudFiles();
       this.filterCloudFiles();
     } catch (error) {
-      console.error('Error loading cloud files:', error);
+      
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -197,7 +195,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       }))
     ];
 
-    console.log(`Loaded ${this.allCloudFiles.length} total cloud files`);
+   
   }
 
   filterCloudFiles(): void {
@@ -293,7 +291,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       this.selectedCloudFiles = [];
 
     } catch (error) {
-      console.error('Error during batch sync:', error);
+      
       this.messageService.add({
         severity: 'error',
         summary: 'Sync Error',
@@ -405,7 +403,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
         source: 'drive'
       }));
       
-      console.log(`Successfully loaded ${this.googleDriveDocuments.length} Google Drive files`);
+     
       
     } catch (error) {
       console.error('Failed to load Google Drive files:', error);
@@ -459,7 +457,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
     try {
       console.log('Fetching Dropbox documents...');
       this.dropboxDocuments = await this.dropboxService.listFiles();
-      console.log('Dropbox documents loaded:', this.dropboxDocuments.length);
+      
     } catch (error) {
       console.error('Error fetching Dropbox documents:', error);
       this.dropboxDocuments = [];
@@ -468,15 +466,14 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
 
   async getUser(userId: number): Promise<any> {
     try {
-      console.log('Fetching user data...');
+      
       const user = await this.documentsService.getUser(userId);
       
       this.documents = user.documents || [];
       this.dropboxSync = user.dropbox_sync || false;
       this.driveSync = user.drive_sync || false;
       
-      console.log('Local documents loaded:', this.documents.length);
-      
+           
       return user;
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -540,7 +537,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
         return;
       }
 
-      console.log('Syncing document to Google Drive:', document);
+      
       if (!document?.document) {
         throw new Error('Document content is missing');
       }
@@ -578,7 +575,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
       await this.loadLocalDocuments();
 
     } catch (error: any) {
-      console.error('Google Drive sync failed:', error.message || error);
+      
       
       this.messageService.add({
         severity: 'error',
@@ -680,7 +677,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
         summary: 'Download Failed',
         detail: errorMessage
       });
-      throw error; // Re-throw for batch sync error handling
+      throw error; 
     }
   }
 
@@ -733,7 +730,7 @@ export class DocumentsComponent implements OnInit, AfterViewInit {
         throw new Error('Document content is missing');
       }
 
-      console.log('Syncing document to Dropbox:', document);
+      
       const cleanFileName = this.sanitizeFileName(document.name);
       const dropboxPath = `/${cleanFileName}`;
 

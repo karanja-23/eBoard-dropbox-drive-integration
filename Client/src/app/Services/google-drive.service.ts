@@ -33,43 +33,30 @@ private authStatusSubject = new BehaviorSubject<boolean>(false);
     }
   }
 
-  /**
-   * Initialize Google Services (GIS + GAPI)
-   */
+ 
   private async initializeGoogleServices(): Promise<void> {
   if (!this.isBrowser) {
-    console.warn('Google services initialization skipped - not in browser environment');
+    
     return;
   }
 
   try {
-    console.log('🔧 Initializing Google Services...');
-    console.log('🌐 Current origin:', window.location.origin);
-    console.log('🔑 Client ID:', this.CLIENT_ID);
     
-    // Load both Google Identity Services and GAPI
     await Promise.all([
       this.loadGISScript(),
       this.loadGapiScript()
     ]);
 
-    // Initialize both services
+    
     await this.initializeGIS();
     await this.initializeGAPI();
     
-    // Check for existing authentication
     await this.checkInitialAuthStatus();
-    
-    console.log('✅ Google services initialized successfully');
   } catch (error) {
     console.error('❌ Failed to initialize Google services:', error);
   }
 }
 
-
-  /**
-   * Load Google Identity Services script
-   */
   private loadGISScript(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (typeof google !== 'undefined' && google.accounts) {
@@ -87,9 +74,7 @@ private authStatusSubject = new BehaviorSubject<boolean>(false);
     });
   }
 
-  /**
-   * Load Google API script
-   */
+
   private loadGapiScript(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (typeof gapi !== 'undefined') {
@@ -107,9 +92,7 @@ private authStatusSubject = new BehaviorSubject<boolean>(false);
     });
   }
 
-  /**
-   * Initialize Google Identity Services
-   */
+
   private async initializeGIS(): Promise<void> {
     if (typeof google === 'undefined') {
       throw new Error('Google Identity Services not loaded');
@@ -125,23 +108,21 @@ private authStatusSubject = new BehaviorSubject<boolean>(false);
             console.error('Token response error:', response.error);
             this.authStatusSubject.next(false);
           } else {
-            console.log('✅ Authentication successful');
+            console.log('Authentication successful');
             this.authStatusSubject.next(true);
           }
         },
       });
 
       this.gisInitialized = true;
-      console.log('✅ Google Identity Services initialized');
+      console.log('Google Identity Services initialized');
     } catch (error) {
       console.error('❌ Failed to initialize GIS:', error);
       throw error;
     }
   }
 
-  /**
-   * Initialize Google API Client
-   */
+
   private async initializeGAPI(): Promise<void> {
     if (typeof gapi === 'undefined') {
       throw new Error('GAPI not loaded');
@@ -156,72 +137,62 @@ private authStatusSubject = new BehaviorSubject<boolean>(false);
           });
           
           this.gapiInitialized = true;
-          console.log('✅ GAPI client initialized');
+          console.log('GAPI client initialized');
           resolve();
         } catch (error) {
-          console.error('❌ Failed to initialize GAPI client:', error);
+          console.error('Failed to initialize GAPI client:', error);
           reject(error);
         }
       });
     });
   }
 
-  /**
-   * Check if services are available
-   */
   private checkAvailability(): boolean {
     if (!this.isBrowser) {
-      console.warn('Google Drive service not available in server environment');
+      
       return false;
     }
     if (!this.gisInitialized || !this.gapiInitialized) {
-      console.warn('Google services not initialized yet');
+
       return false;
     }
     return true;
   }
 
-  /**
-   * Authenticate with Google Drive using new GIS
-   */
- 
 
 async authenticate(): Promise<boolean> {
   if (!this.checkAvailability()) {
     return false;
   }
 
-  console.log('🔐 Starting authentication...');
-
-  // First, try to use stored token
   const storedToken = this.getStoredToken();
   if (storedToken) {
-    console.log('📱 Found stored token, validating...');
+    
     const isValid = await this.validateStoredToken(storedToken);
     if (isValid) {
-      console.log('✅ Stored token is valid, using it');
+      
       this.setToken(storedToken);
       this.authStatusSubject.next(true);
       return true;
     } else {
-      console.log('❌ Stored token is invalid, removing it');
+      console.log('Stored token is invalid, removing it');
       this.clearStoredToken();
     }
   }
 
   // If no stored token or invalid, request new one
-  console.log('🔄 Requesting new token...');
+  
   return this.requestNewToken();
 }
 private async requestNewToken(): Promise<boolean> {
   return new Promise<boolean>((resolve, reject) => {
     this.tokenClient.callback = (response: any) => {
       if (response.error !== undefined) {
-        console.error('❌ Token error:', response.error);
+        console.error('Token error:', response.error);
         this.authStatusSubject.next(false);
         reject(false);
       } else {
-        console.log('✅ New token received');
+        
         this.setToken(response.access_token);
         this.storeToken(response.access_token);
         this.authStatusSubject.next(true);
@@ -239,9 +210,6 @@ private async requestNewToken(): Promise<boolean> {
   });
 }
 
-/**
- * Get stored token from localStorage
- */
 private getStoredToken(): string | null {
   if (!this.isBrowser) {
     return null;
@@ -255,9 +223,6 @@ private getStoredToken(): string | null {
   }
 }
 
-/**
- * Store token in localStorage
- */
 private storeToken(token: string): void {
   if (!this.isBrowser) {
     return;
@@ -266,15 +231,13 @@ private storeToken(token: string): void {
   try {
     localStorage.setItem('googleDriveAccessToken', token);
     this.driveIsAuthenticated = true;
-    console.log('💾 Token stored successfully');
+    
   } catch (error) {
     console.warn('Failed to store token:', error);
   }
 }
 
-/**
- * Clear stored token
- */
+
 private clearStoredToken(): void {
   if (!this.isBrowser) {
     return;
@@ -283,15 +246,13 @@ private clearStoredToken(): void {
   try {
     localStorage.removeItem('googleDriveAccessToken');
     this.driveIsAuthenticated = false;
-    console.log('🗑️ Stored token cleared');
+    
   } catch (error) {
     console.warn('Failed to clear stored token:', error);
   }
 }
 
-/**
- * Set token in GAPI client
- */
+
 private setToken(token: string): void {
   if (typeof gapi !== 'undefined' && gapi.client) {
     gapi.client.setToken({
@@ -300,9 +261,6 @@ private setToken(token: string): void {
   }
 }
 
-/**
- * Validate stored token by making a simple API call
- */
 private async validateStoredToken(token: string): Promise<boolean> {
   try {
     // Set the token temporarily for validation
@@ -322,7 +280,7 @@ private async validateStoredToken(token: string): Promise<boolean> {
       // Token is expired or invalid
       return false;
     } else {
-      // Other error, assume token might be valid but there's a different issue
+      // Other error
       console.warn('Token validation returned unexpected status:', response.status);
       return false;
     }
@@ -332,15 +290,12 @@ private async validateStoredToken(token: string): Promise<boolean> {
   }
 }
 
-/**
- * Enhanced getAccessToken method
- */
 getAccessToken(): string | null {
   if (!this.checkAvailability()) {
     return null;
   }
   
-  // First try to get token from GAPI client
+  // Try to get token from GAPI client
   const gapiToken = gapi.client.getToken();
   if (gapiToken?.access_token) {
     return gapiToken.access_token;
@@ -350,9 +305,7 @@ getAccessToken(): string | null {
   return this.getStoredToken();
 }
 
-/**
- * Enhanced sign out method
- */
+
 async signOut(): Promise<void> {
   if (!this.checkAvailability()) {
     return;
@@ -363,7 +316,7 @@ async signOut(): Promise<void> {
     if (token) {
       // Revoke token
       google.accounts.oauth2.revoke(token, () => {
-        console.log('✅ Token revoked successfully');
+       
       });
       
       // Clear from GAPI client
@@ -374,49 +327,32 @@ async signOut(): Promise<void> {
     this.clearStoredToken();
     
     this.authStatusSubject.next(false);
-    console.log('✅ Signed out successfully');
+    
   } catch (error) {
     console.error('Sign out failed:', error);
   }
 }
 
-/**
- * Check authentication status on service initialization
- */
 private async checkInitialAuthStatus(): Promise<void> {
   const storedToken = this.getStoredToken();
   if (storedToken) {
-    console.log('🔍 Checking stored token on initialization...');
+    
     const isValid = await this.validateStoredToken(storedToken);
     if (isValid) {
       this.setToken(storedToken);
       this.authStatusSubject.next(true);
-      console.log('✅ Restored authentication from stored token');
+      
     } else {
       this.clearStoredToken();
     }
   }
 }
 
-  /**
-   * Sign out from Google Drive
-   */
-
-
-  /**
-   * Get current authentication status
-   */
   get isAuthenticated(): boolean {
     return this.authStatusSubject.value;
   }
 
-  /**
-   * Get current access token
-   */
- 
-  /**
-   * Check if the service is ready to use
-   */
+  
   get isReady(): boolean {
     return this.isBrowser && this.gapiInitialized && this.gisInitialized;
   }
@@ -439,7 +375,7 @@ private async checkInitialAuthStatus(): Promise<void> {
     
     return response.result;
   } catch (error: any) {
-    // If we get a 401 (unauthorized) and haven't retried yet, try to re-authenticate
+    // If unauthorized, try to re-authenticate
     if (error.status === 401 && retryCount === 0) {
       console.log('🔄 Token expired, attempting to re-authenticate...');
       this.clearStoredToken();
@@ -457,9 +393,7 @@ private async checkInitialAuthStatus(): Promise<void> {
   }
 }
 
-  /**
-   * List files in Google Drive
-   */
+
   async listAllFiles(options: {
   query?: string;
   includeDeleted?: boolean;
@@ -472,12 +406,11 @@ private async checkInitialAuthStatus(): Promise<void> {
       throw new Error('Not authenticated with Google Drive');
     }
 
-    console.log('Starting to list all files from Google Drive...');
     
     const {
       query = '',
       includeDeleted = false,
-      maxResults = 10000, // Reasonable limit to prevent infinite loops
+      maxResults = 10000, 
       orderBy = 'modifiedTime desc',
       progressCallback
     } = options;
@@ -485,7 +418,7 @@ private async checkInitialAuthStatus(): Promise<void> {
     let allFiles: any[] = [];
     let nextPageToken: string | undefined = undefined;
     let totalRequests = 0;
-    const pageSize = 1000; // Maximum allowed by Google Drive API
+    const pageSize = 1000; 
 
     do {
       totalRequests++;
@@ -542,13 +475,12 @@ private async checkInitialAuthStatus(): Promise<void> {
       
       nextPageToken = response.nextPageToken;
       
-      // Safety check to prevent infinite loops
-      if (allFiles.length >= maxResults) {
-        console.log(`Reached maximum results limit: ${maxResults}`);
+      // prevent infinite loops
+      if (allFiles.length >= maxResults) {        
         break;
       }
       
-      // Add small delay to be nice to the API
+      // delay
       if (nextPageToken) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
@@ -570,9 +502,7 @@ private async checkInitialAuthStatus(): Promise<void> {
   }
 }
 
-  /**
-   * Upload a file to Google Drive
-   */
+  
   async uploadFile(file: File, name?: string): Promise<any> {
     if (!this.checkAvailability() || !this.isAuthenticated) {
       throw new Error('Service not ready or user not authenticated');
@@ -654,9 +584,6 @@ private async checkInitialAuthStatus(): Promise<void> {
   return response;
 }
 
-/**
- * Download file as ArrayBuffer (browser compatible)
- */
 async downloadFileAsBuffer(fileId: string): Promise<ArrayBuffer> {
   if (!this.checkAvailability() || !this.isAuthenticated) {
     throw new Error('Service not ready or user not authenticated');
@@ -665,18 +592,14 @@ async downloadFileAsBuffer(fileId: string): Promise<ArrayBuffer> {
   try {
     // First get metadata to check file type
     const metadata = await this.getFileMetadata(fileId);
-    console.log('File metadata:', {
-      name: metadata.name,
-      mimeType: metadata.mimeType,
-      size: metadata.size
-    });
+    
 
     // Check if it's a Google Workspace file
     if (this.isGoogleWorkspaceFile(metadata.mimeType)) {
-      console.log('Exporting Google Workspace file...');
+      
       return await this.exportGoogleWorkspaceFile(fileId, metadata.mimeType);
     } else {
-      console.log('Downloading regular file...');
+     
       return await this.downloadRegularFile(fileId);
     }
     
@@ -694,7 +617,7 @@ async downloadFileAsBuffer(fileId: string): Promise<ArrayBuffer> {
   
   return {
     metadata,
-    base64Content: this.arrayBufferToBase64(content), // This is your base64 string
+    base64Content: this.arrayBufferToBase64(content), 
     exportedName
   };
 }
@@ -722,9 +645,7 @@ private isGoogleWorkspaceFile(mimeType: string): boolean {
   return googleMimeTypes.includes(mimeType);
 }
 
-/**
- * Get export MIME type for Google Workspace files
- */
+
 private getExportMimeType(googleMimeType: string): string {
   const exportMap: { [key: string]: string } = {
     'application/vnd.google-apps.document': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -738,9 +659,7 @@ private getExportMimeType(googleMimeType: string): string {
   return exportMap[googleMimeType] || 'application/pdf';
 }
 
-/**
- * Get file extension for export format
- */
+
 private getExportExtension(mimeType: string): string {
   const extensionMap: { [key: string]: string } = {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
@@ -754,14 +673,6 @@ private getExportExtension(mimeType: string): string {
   return extensionMap[mimeType] || '.pdf';
 }
 
-/**
- * Get file metadata (update your existing method or add if missing)
- */
-
-
-/**
- * Download regular files (non-Google Workspace files)
- */
 private async downloadRegularFile(fileId: string): Promise<ArrayBuffer> {
   const token = this.getAccessToken();
   if (!token) {
@@ -781,9 +692,7 @@ private async downloadRegularFile(fileId: string): Promise<ArrayBuffer> {
   return await response.arrayBuffer();
 }
 
-/**
- * Export Google Workspace files
- */
+
 private async exportGoogleWorkspaceFile(fileId: string, mimeType: string): Promise<ArrayBuffer> {
   const token = this.getAccessToken();
   if (!token) {
@@ -805,14 +714,7 @@ private async exportGoogleWorkspaceFile(fileId: string, mimeType: string): Promi
   return await response.arrayBuffer();
 }
 
-/**
- * Updated download method - replace your existing downloadFileAsBuffer
- */
 
-
-/**
- * Get file with content and proper naming
- */
 async getFileWithContent(fileId: string): Promise<{ metadata: any, content: ArrayBuffer, exportedName?: string }> {
   const metadata = await this.getFileMetadata(fileId);
   const content = await this.downloadFileAsBuffer(fileId);
@@ -832,14 +734,6 @@ async getFileWithContent(fileId: string): Promise<{ metadata: any, content: Arra
   };
 }
 
-/**
- * Convert ArrayBuffer to base64 string
- */
-
-
-/**
- * Get file as base64 string (this is what you want!)
- */
 async getFileAsBase64(fileId: string): Promise<{
   metadata: any;
   base64Content: string;
